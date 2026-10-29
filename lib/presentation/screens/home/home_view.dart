@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
-import 'package:eventpilot/views/auth/register_view.dart';
-import 'package:eventpilot/views/auth/login_view.dart';
-import 'package:eventpilot/views/shared/app_button.dart';
-import 'package:eventpilot/views/shared/app_card.dart';
+import 'package:eventpilot/presentation/screens/authentification/register_view.dart';
+import 'package:eventpilot/presentation/screens/authentification/login_view.dart';
+import 'package:eventpilot/presentation/widgets/app_button.dart';
+import 'package:eventpilot/presentation/widgets/app_card.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});

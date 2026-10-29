@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
-import 'package:eventpilot/views/shared/app_button.dart';
-import 'package:eventpilot/views/shared/app_text_field.dart';
+import 'package:eventpilot/presentation/widgets/app_button.dart';
+import 'package:eventpilot/presentation/widgets/app_text_field.dart';
 
 class CreateEventView extends StatefulWidget {
   const CreateEventView({super.key});
