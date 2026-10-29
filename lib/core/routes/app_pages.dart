@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:eventpilot/core/routes/app_routes.dart';
-import 'package:eventpilot/presentation/screens/authentification/login_view.dart';
-import 'package:eventpilot/presentation/screens/authentification/register_view.dart';
+import 'package:eventpilot/presentation/screens/authentification/views/login_view.dart';
+import 'package:eventpilot/presentation/screens/authentification/views/register_view.dart';
 import 'package:eventpilot/presentation/screens/events/create_event_view.dart';
 import 'package:eventpilot/presentation/screens/home/dashboard_organizer.dart';
 import 'package:eventpilot/presentation/screens/home/home_view.dart';
