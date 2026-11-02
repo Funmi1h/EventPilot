@@ -39,20 +39,16 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: AppColors.background,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
       ),
       body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+          padding: const EdgeInsets.fromLTRB(28, 8, 28, 32),
           child: _sentSuccess ? _buildSuccessState() : _buildFormState(),
         ),
       ),
@@ -65,55 +61,53 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppColors.primarySoft,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(
-              Icons.lock_reset_rounded,
-              color: AppColors.primaryDark,
-              size: 28,
+          const Text(
+            'ACCÈS',
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.3,
+              color: AppColors.accent,
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 14),
           const Text(
             'Mot de passe oublié',
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.8,
+              height: 1.18,
               color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           const Text(
-            'Entrez l\'adresse e-mail associée à votre compte pour recevoir les instructions de réinitialisation.',
+            'Indiquez l\'adresse associée à votre compte. Nous vous enverrons '
+            'les instructions pour le réinitialiser.',
             style: TextStyle(
               fontSize: 14,
+              height: 1.6,
               color: AppColors.textSecondary,
-              height: 1.5,
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 36),
           AppTextField(
             label: 'Adresse e-mail',
-            hintText: 'exemple@domaine.com',
+            hintText: 'vous@exemple.com',
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            prefixIcon: Icons.email_outlined,
             validator: (v) {
               if (v == null || v.trim().isEmpty) {
                 return 'Veuillez saisir votre adresse e-mail';
               }
               if (!v.contains('@')) {
-                return 'Veuillez entrer une adresse e-mail valide';
+                return 'Veuillez entrer une adresse valide';
               }
               return null;
             },
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
           AppButton(
             label: 'Envoyer les instructions',
             isLoading: _isLoading,
@@ -126,45 +120,42 @@ class _ForgotPasswordViewState extends State<ForgotPasswordView> {
 
   Widget _buildSuccessState() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: 40),
+        const SizedBox(height: 12),
         Container(
-          width: 80,
-          height: 80,
-          decoration: const BoxDecoration(
-            color: AppColors.successSoft,
-            shape: BoxShape.circle,
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceMuted,
+            borderRadius: BorderRadius.circular(14),
           ),
           child: const Icon(
-            Icons.mark_email_read_rounded,
-            color: AppColors.success,
-            size: 40,
+            Icons.mark_email_read_outlined,
+            color: AppColors.ink,
+            size: 22,
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 22),
         const Text(
           'Vérifiez vos e-mails',
           style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+            fontSize: 26,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.7,
             color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Text(
-            'Un lien de réinitialisation a été envoyé à l\'adresse :\n${_emailController.text}',
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-              height: 1.5,
-            ),
+        Text(
+          'Un lien de réinitialisation a été envoyé à ${_emailController.text}.',
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            height: 1.65,
           ),
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 32),
         AppButton(
           label: 'Retour à la connexion',
           onPressed: () => Get.back(),

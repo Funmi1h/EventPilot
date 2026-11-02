@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/screens/payments/payments_list_view.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
 
 class ParticipantsListView extends StatefulWidget {
   const ParticipantsListView({super.key});
@@ -13,7 +14,7 @@ class ParticipantsListView extends StatefulWidget {
 class _ParticipantsListViewState extends State<ParticipantsListView> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Tous';
-  final List<String> _filters = ['Tous', 'Payé (64)', 'En attente (6)'];
+  final List<String> _filters = ['Tous', 'Payé', 'En attente'];
 
   final List<Map<String, dynamic>> _participants = [
     {
@@ -98,7 +99,7 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
       builder: (ctx) => Container(
         padding: const EdgeInsets.all(24),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: Column(
@@ -107,26 +108,32 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
           children: [
             Center(
               child: Container(
-                width: 40,
+                width: 36,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: AppColors.borderStrong,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Row(
               children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundColor: AppColors.primarySoft,
-                  child: Text(
-                    participant['initials'],
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
-                      fontSize: 18,
+                Container(
+                  width: 46,
+                  height: 46,
+                  decoration: const BoxDecoration(
+                    color: AppColors.surfaceMuted,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
+                    child: Text(
+                      participant['initials'],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
                   ),
                 ),
@@ -138,99 +145,93 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
                       Text(
                         participant['name'],
                         style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.2,
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 3),
                       Text(
                         participant['ticketCode'],
                         style: const TextStyle(
-                          fontSize: 12,
-                          color: AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                          letterSpacing: 0.4,
+                          color: AppColors.textTertiary,
                         ),
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: participant['status'] == 'Payé'
-                        ? AppColors.successSoft
-                        : AppColors.warningSoft,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    participant['status'],
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: participant['status'] == 'Payé'
-                          ? AppColors.success
-                          : AppColors.warning,
-                    ),
-                  ),
+                AppTag(
+                  participant['status'],
+                  dotColor: participant['status'] == 'Payé'
+                      ? AppColors.success
+                      : AppColors.warning,
                 ),
               ],
             ),
-            const Divider(height: 32),
-            _buildDetailRow(Icons.phone_outlined, 'Téléphone', participant['phone']),
-            const SizedBox(height: 12),
-            _buildDetailRow(Icons.email_outlined, 'Adresse e-mail', participant['email']),
-            const SizedBox(height: 12),
-            _buildDetailRow(Icons.confirmation_number_outlined, 'Montant de participation', participant['amount']),
-            const SizedBox(height: 12),
-            _buildDetailRow(Icons.access_time_rounded, 'Date d\'inscription', participant['date']),
-            const SizedBox(height: 28),
+            const SizedBox(height: 24),
+            const Divider(height: 1),
+            const SizedBox(height: 18),
+            _buildDetailRow(
+              Icons.phone_outlined,
+              'Téléphone',
+              participant['phone'],
+            ),
+            const SizedBox(height: 14),
+            _buildDetailRow(
+              Icons.mail_outline_rounded,
+              'E-mail',
+              participant['email'],
+            ),
+            const SizedBox(height: 14),
+            _buildDetailRow(
+              Icons.confirmation_number_outlined,
+              'Participation',
+              participant['amount'],
+            ),
+            const SizedBox(height: 14),
+            _buildDetailRow(
+              Icons.schedule_rounded,
+              'Inscription',
+              participant['date'],
+            ),
+            const SizedBox(height: 26),
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: OutlinedButton(
                     onPressed: () {
                       Navigator.pop(ctx);
                       Get.snackbar(
                         'Relance envoyée',
-                        'Un rappel par SMS/Email a été simulé vers ${participant['name']}.',
-                        snackPosition: SnackPosition.BOTTOM,
+                        'Un rappel a été simulé vers ${participant['name']}.',
                       );
                     },
-                    icon: const Icon(Icons.send_rounded, size: 18),
-                    label: const Text('Relancer'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryDark,
-                      side: const BorderSide(color: AppColors.primary),
-                      minimumSize: const Size(0, 48),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+                    child: const Text('Relancer'),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        participant['status'] = participant['status'] == 'Payé' ? 'En attente' : 'Payé';
+                        participant['status'] =
+                            participant['status'] == 'Payé'
+                                ? 'En attente'
+                                : 'Payé';
                       });
                       Navigator.pop(ctx);
                       Get.snackbar(
-                        'Statut modifié',
-                        'Le statut de ${participant['name']} est désormais : ${participant['status']}.',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: AppColors.successSoft,
-                        colorText: AppColors.success,
+                        'Statut mis à jour',
+                        '${participant['name']} · ${participant['status']}.',
                       );
                     },
-                    icon: const Icon(Icons.swap_horiz, size: 18),
-                    label: Text(participant['status'] == 'Payé' ? 'Marquer attente' : 'Valider paiement'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(0, 48),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Text(
+                      participant['status'] == 'Payé'
+                          ? 'Marquer en attente'
+                          : 'Valider',
                     ),
                   ),
                 ),
@@ -245,21 +246,23 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: AppColors.textSecondary),
+        Icon(icon, size: 16, color: AppColors.textTertiary),
         const SizedBox(width: 10),
-        Text(
-          '$label : ',
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-        ),
         Expanded(
           child: Text(
-            value,
-            textAlign: TextAlign.right,
+            label,
             style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              fontSize: 12,
+              color: AppColors.textSecondary,
             ),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
           ),
         ),
       ],
@@ -276,8 +279,7 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
           p['phone'].toString().toLowerCase().contains(query);
 
       final matchesFilter = _selectedFilter == 'Tous' ||
-          (_selectedFilter.startsWith('Payé') && p['status'] == 'Payé') ||
-          (_selectedFilter.startsWith('En attente') && p['status'] == 'En attente');
+          p['status'] == _selectedFilter;
 
       return matchesSearch && matchesFilter;
     }).toList();
@@ -285,69 +287,48 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
-        title: const Text(
-          'Participants',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Participants'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.payments_outlined, color: AppColors.primaryDark),
-            tooltip: 'Historique des paiements',
-            onPressed: () {
-              Get.to(() => const PaymentsListView());
-            },
+            icon: const Icon(Icons.payments_outlined, size: 21),
+            tooltip: 'Paiements',
+            onPressed: () => Get.to(() => const PaymentsListView()),
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            // ── En-tête statistiques ──
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 6, 22, 14),
               child: Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatBadge('70', 'Inscrits au total', AppColors.primaryDark, AppColors.primarySoft),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildStatBadge('64', 'Payés / Confirmés', AppColors.success, AppColors.successSoft),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _buildStatBadge('6', 'En attente', AppColors.warning, AppColors.warningSoft),
-                      ),
-                    ],
-                  ),
+                  _buildStats(),
                   const SizedBox(height: 14),
-
-                  // ── Barre de recherche (3.5.3) ──
                   TextField(
                     controller: _searchController,
                     onChanged: (v) => setState(() {}),
+                    style: const TextStyle(
+                      fontSize: 13.5,
+                      color: AppColors.textPrimary,
+                    ),
                     decoration: InputDecoration(
-                      hintText: 'Rechercher un participant (nom, email, tel)...',
-                      hintStyle: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                      prefixIcon: const Icon(Icons.search, size: 20, color: AppColors.textSecondary),
+                      hintText: 'Rechercher un participant',
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        size: 19,
+                        color: AppColors.textTertiary,
+                      ),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 18),
+                              icon: const Icon(Icons.close_rounded, size: 16),
+                              color: AppColors.textTertiary,
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() {});
@@ -355,146 +336,139 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
                             )
                           : null,
                       filled: true,
-                      fillColor: const Color(0xFFF3F4F6),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      fillColor: AppColors.surfaceMuted,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 13,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.ink,
+                          width: 1.2,
+                        ),
+                      ),
                     ),
                   ),
-
                   const SizedBox(height: 12),
-
-                  // ── Onglets / Filtres ──
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: _filters.map((f) {
-                        final isSel = _selectedFilter == f;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: ChoiceChip(
-                            label: Text(f),
-                            selected: isSel,
-                            selectedColor: AppColors.primary,
-                            backgroundColor: const Color(0xFFF3F4F6),
-                            labelStyle: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                              color: isSel ? Colors.white : AppColors.textSecondary,
+                  SizedBox(
+                    width: double.infinity,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _filters.map((f) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 7),
+                            child: AppFilterChip(
+                              label: f,
+                              selected: _selectedFilter == f,
+                              onTap: () =>
+                                  setState(() => _selectedFilter = f),
                             ),
-                            onSelected: (val) {
-                              setState(() => _selectedFilter = f);
-                            },
-                          ),
-                        );
-                      }).toList(),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            // ── Liste des participants (3.5.2) ──
             Expanded(
               child: filtered.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.person_search_outlined, size: 54, color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Aucun participant correspondant',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    )
+                  ? _buildEmptyState()
                   : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      padding: const EdgeInsets.fromLTRB(22, 2, 22, 28),
                       itemCount: filtered.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 9),
                       itemBuilder: (context, index) {
                         final p = filtered[index];
                         final isPaid = p['status'] == 'Payé';
 
                         return InkWell(
                           onTap: () => _showParticipantDetail(p),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(15),
                           child: Container(
                             padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(15),
                               border: Border.all(color: AppColors.border),
                             ),
                             child: Row(
                               children: [
-                                CircleAvatar(
-                                  radius: 20,
-                                  backgroundColor: isPaid ? const Color(0xFFEEF2FF) : AppColors.warningSoft,
-                                  child: Text(
-                                    p['initials'],
-                                    style: TextStyle(
-                                      color: isPaid ? Colors.indigo : AppColors.warning,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
+                                Container(
+                                  width: 38,
+                                  height: 38,
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.surfaceMuted,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      p['initials'],
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.textSecondary,
+                                      ),
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         p['name'],
                                         style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 14,
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
                                           color: AppColors.textPrimary,
                                         ),
                                       ),
-                                      const SizedBox(height: 2),
+                                      const SizedBox(height: 3),
                                       Text(
                                         '${p['phone']} · ${p['date']}',
                                         style: const TextStyle(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 11,
+                                          fontSize: 10.5,
+                                          color: AppColors.textTertiary,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                const SizedBox(width: 8),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
                                       p['amount'],
                                       style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 13,
+                                        fontSize: 12.5,
+                                        fontWeight: FontWeight.w500,
                                         color: AppColors.textPrimary,
                                       ),
                                     ),
-                                    const SizedBox(height: 3),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: isPaid ? AppColors.successSoft : AppColors.warningSoft,
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        p['status'],
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: isPaid ? AppColors.success : AppColors.warning,
-                                        ),
+                                    const SizedBox(height: 5),
+                                    AppTag(
+                                      p['status'],
+                                      dotColor: isPaid
+                                          ? AppColors.success
+                                          : AppColors.warning,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
                                       ),
                                     ),
                                   ],
@@ -512,31 +486,89 @@ class _ParticipantsListViewState extends State<ParticipantsListView> {
     );
   }
 
-  Widget _buildStatBadge(String count, String label, Color textColor, Color bgColor) {
+  Widget _buildStats() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(12),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
       ),
+      child: Row(
+        children: [
+          _buildStat('70', 'Inscrits'),
+          _buildDivider(),
+          _buildStat('64', 'Confirmés'),
+          _buildDivider(),
+          _buildStat('6', 'En attente'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStat(String value, String label) {
+    return Expanded(
       child: Column(
         children: [
           Text(
-            count,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: textColor,
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.4,
+              color: AppColors.textPrimary,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
             label,
-            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 10.5,
+              color: AppColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(width: 1, height: 28, color: AppColors.border);
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.person_search_outlined,
+              size: 21,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Aucun participant',
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 13.5,
               fontWeight: FontWeight.w500,
-              color: textColor.withValues(alpha: 0.8),
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Essayez un autre nom ou filtre.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
             ),
           ),
         ],

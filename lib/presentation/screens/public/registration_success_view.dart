@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
 
 class RegistrationSuccessView extends StatelessWidget {
   final String? participantName;
@@ -27,208 +28,66 @@ class RegistrationSuccessView extends StatelessWidget {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+          padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 16),
-
-              // ── Icône de succès animée ──
               Container(
-                width: 72,
-                height: 72,
-                decoration: const BoxDecoration(
-                  color: AppColors.successSoft,
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceMuted,
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.border),
                 ),
                 child: const Icon(
-                  Icons.check_circle_rounded,
-                  color: AppColors.success,
-                  size: 48,
+                  Icons.check_rounded,
+                  color: AppColors.ink,
+                  size: 28,
                 ),
               ),
-
-              const SizedBox(height: 16),
-
+              const SizedBox(height: 20),
               const Text(
-                'Inscription confirmée ! 🎉',
+                'Inscription confirmée',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 22,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
                   color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 isPaid
-                    ? 'Votre paiement simulé de ${amountPaid ?? "15 000 FCFA"} a été validé avec succès.'
+                    ? 'Votre paiement de ${amountPaid ?? "15 000 FCFA"} a été validé.'
                     : 'Votre place est bien enregistrée pour la cérémonie.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: AppColors.textSecondary,
-                  height: 1.4,
+                  height: 1.55,
                 ),
               ),
-
               const SizedBox(height: 28),
-
-              // ── Billet numérique (Ticket pass) ──
-              Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // En-tête billet
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: const [
-                              Icon(Icons.event_available, color: Colors.white, size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                'PASS INVITATION',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                  letterSpacing: 1.1,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              ticketCode ?? 'EP-DEMO-001',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Corps du billet
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            eventTitle ?? 'Mariage Rita & Marc',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          const Text(
-                            'Sam. 14 déc. 2026 · 15h00 · Hôtel du Lac, Cotonou',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                            ),
-                          ),
-                          const Divider(height: 28),
-                          _buildTicketInfo('Participant', participantName ?? 'Invité'),
-                          const SizedBox(height: 8),
-                          _buildTicketInfo('E-mail', participantEmail ?? '—'),
-                          const SizedBox(height: 8),
-                          _buildTicketInfo(
-                            'Statut',
-                            isPaid ? 'Payé & Confirmé' : 'Inscrit (Entrée libre)',
-                            highlight: true,
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Simulation QR Code
-                          Center(
-                            child: Column(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade50,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: AppColors.border),
-                                  ),
-                                  child: Icon(
-                                    Icons.qr_code_2_rounded,
-                                    size: 100,
-                                    color: AppColors.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Présentez ce QR Code à l\'accueil',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const SizedBox(height: 28),
-
-              // ── Boutons d'action ──
+              _buildPass(),
+              const SizedBox(height: 26),
               AppButton(
                 label: 'Enregistrer le pass',
-                icon: Icons.download_rounded,
+                icon: Icons.download_outlined,
                 onPressed: () {
                   Get.snackbar(
                     'Pass sauvegardé',
-                    'Votre pass a été téléchargé dans vos documents.',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: AppColors.successSoft,
-                    colorText: AppColors.success,
+                    'Votre pass a été ajouté à vos documents.',
                   );
                 },
               ),
-
               const SizedBox(height: 12),
-
               AppButton(
                 label: 'Retour',
                 type: AppButtonType.outlined,
                 onPressed: () => Get.back(),
               ),
-
-              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -236,17 +95,164 @@ class RegistrationSuccessView extends StatelessWidget {
     );
   }
 
-  Widget _buildTicketInfo(String label, String value, {bool highlight = false}) {
+  Widget _buildPass() {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(18),
+            decoration: const BoxDecoration(
+              color: AppColors.ink,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Row(
+              children: [
+                const Expanded(
+                  child: Text(
+                    'PASS INVITATION',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 11,
+                      letterSpacing: 1.4,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Text(
+                    ticketCode ?? 'EP-DEMO-001',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 10,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  eventTitle ?? 'Mariage Rita & Marc',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.3,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'Sam. 14 déc. 2026 · 15h00\nHôtel du Lac, Cotonou',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    height: 1.5,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Divider(height: 1),
+                const SizedBox(height: 16),
+                _buildTicketInfo('Participant', participantName ?? 'Invité'),
+                const SizedBox(height: 10),
+                _buildTicketInfo('E-mail', participantEmail ?? '—'),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Statut',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textTertiary,
+                        ),
+                      ),
+                    ),
+                    AppTag(
+                      isPaid ? 'Payé & confirmé' : 'Entrée libre',
+                      dotColor:
+                          isPaid ? AppColors.success : AppColors.accent,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 22),
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceMuted,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Icon(
+                          Icons.qr_code_2_rounded,
+                          size: 96,
+                          color: AppColors.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        'Présentez ce QR code à l\'accueil',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTicketInfo(String label, String value) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: highlight ? AppColors.success : AppColors.textPrimary,
+        SizedBox(
+          width: 92,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textTertiary,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
           ),
         ),
       ],

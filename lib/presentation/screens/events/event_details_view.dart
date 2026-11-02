@@ -8,6 +8,9 @@ import 'package:eventpilot/presentation/screens/tasks/task_list_view.dart';
 import 'package:eventpilot/presentation/screens/expenses/expense_list_view.dart';
 import 'package:eventpilot/presentation/screens/participants/participants_list_view.dart';
 import 'package:eventpilot/presentation/screens/public/public_event_view.dart';
+import 'package:eventpilot/presentation/widgets/app_icon_box.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
+import 'package:eventpilot/presentation/widgets/section_header.dart';
 
 class EventDetailsView extends StatefulWidget {
   final Map<String, dynamic>? eventData;
@@ -18,7 +21,6 @@ class EventDetailsView extends StatefulWidget {
   State<EventDetailsView> createState() => _EventDetailsViewState();
 }
 
-// Données de démonstration
 const _kDefaultEvent = {
   'id': '1',
   'title': 'Mariage Rita & Marc',
@@ -26,7 +28,7 @@ const _kDefaultEvent = {
   'date': 'Sam. 14 déc. 2026',
   'time': '15h00',
   'location': 'Hôtel du Lac, Cotonou',
-  'description': 'Une célébration magnifique réunissant famille et amis.',
+  'description': 'Une célébration réunissant famille et amis.',
   'progress': 0.72,
   'budgetInitial': '2 500 000 FCFA',
   'budgetRestant': '700 000 FCFA',
@@ -46,7 +48,6 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   @override
   void initState() {
     super.initState();
-    // Utilise les arguments GetX si disponibles, sinon les données mockées
     final args = Get.arguments as Map<String, dynamic>?;
     _event = Map<String, dynamic>.from(
       widget.eventData ?? args ?? _kDefaultEvent,
@@ -58,34 +59,34 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     Clipboard.setData(ClipboardData(text: _publicLink));
     Get.snackbar(
       'Lien copié',
-      'Le lien public a été copié dans le presse-papiers.',
-      snackPosition: SnackPosition.BOTTOM,
-      backgroundColor: AppColors.successSoft,
-      colorText: AppColors.success,
-      duration: const Duration(seconds: 2),
+      'Le lien public est dans votre presse-papiers.',
     );
   }
 
   void _confirmDelete() {
     Get.defaultDialog(
       title: 'Supprimer la cérémonie ?',
-      titleStyle: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.error),
-      middleText: 'Cette action est irréversible. Toutes les tâches, dépenses et données associées seront supprimées.',
-      textConfirm: 'Supprimer définitivement',
+      titleStyle: const TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+      middleText:
+          'Cette action est irréversible. Les tâches, dépenses et données associées seront supprimées.',
+      middleTextStyle: const TextStyle(
+        fontSize: 13,
+        height: 1.5,
+        color: AppColors.textSecondary,
+      ),
+      textConfirm: 'Supprimer',
       textCancel: 'Conserver',
       confirmTextColor: Colors.white,
-      buttonColor: AppColors.error,
+      buttonColor: AppColors.ink,
       cancelTextColor: AppColors.textSecondary,
       onConfirm: () {
-        Get.back(); // close dialog
-        Get.back(); // return to previous list
-        Get.snackbar(
-          'Supprimé',
-          'La cérémonie a été supprimée avec succès.',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: AppColors.errorSoft,
-          colorText: AppColors.error,
-        );
+        Get.back();
+        Get.back();
+        Get.snackbar('Cérémonie supprimée', 'Les données ont été retirées.');
       },
     );
   }
@@ -95,26 +96,18 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
-        title: Text(
-          _event['title'] ?? 'Détails de l\'événement',
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: const Text('Cérémonie'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_outlined, color: AppColors.primaryDark),
+            icon: const Icon(Icons.edit_outlined, size: 20),
             tooltip: 'Modifier',
             onPressed: () async {
-              final result = await Get.to(() => EditEventView(eventData: _event));
+              final result =
+                  await Get.to(() => EditEventView(eventData: _event));
               if (result != null && result is Map<String, dynamic>) {
                 setState(() {
                   _event.addAll(result);
@@ -123,282 +116,125 @@ class _EventDetailsViewState extends State<EventDetailsView> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+            icon: const Icon(Icons.delete_outline_rounded, size: 20),
             tooltip: 'Supprimer',
             onPressed: _confirmDelete,
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.fromLTRB(22, 8, 22, 32),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── En-tête Cérémonie ──
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: AppColors.primarySoft,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          _event['type'] ?? 'Cérémonie',
-                          style: const TextStyle(
-                            color: AppColors.primaryDark,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: _isPublished ? AppColors.successSoft : AppColors.warningSoft,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _isPublished ? Icons.check_circle : Icons.visibility_off,
-                              size: 14,
-                              color: _isPublished ? AppColors.success : AppColors.warning,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              _isPublished ? 'Publiée' : 'Brouillon',
-                              style: TextStyle(
-                                color: _isPublished ? AppColors.success : AppColors.warning,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    _event['title'] ?? '',
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildInfoRow(Icons.calendar_today_outlined, '${_event['date']} à ${_event['time']}'),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(Icons.location_on_outlined, _event['location'] ?? 'Cotonou, Bénin'),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(
-                    Icons.monetization_on_outlined,
-                    _event['isPaid'] == true
-                        ? 'Payant · ${_event['fee'] ?? "15 000 FCFA"}'
-                        : 'Entrée gratuite (libre accès)',
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── Contrôle de publication & Lien Public (3.2.8 & 3.2.9) ──
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Visibilité de la page publique',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _isPublished
-                                ? 'La page est accessible par les participants'
-                                : 'La page est masquée aux invités',
-                            style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                      Switch(
-                        value: _isPublished,
-                        activeColor: AppColors.primary,
-                        onChanged: (val) {
-                          setState(() => _isPublished = val);
-                          Get.snackbar(
-                            'Statut mis à jour',
-                            val ? 'Page publique mise en ligne' : 'Page publique désactivée',
-                            snackPosition: SnackPosition.BOTTOM,
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  const Divider(height: 24),
-                  const Text(
-                    'Lien public de la cérémonie',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.link, color: AppColors.primary, size: 20),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _publicLink,
-                            style: const TextStyle(fontSize: 13, color: AppColors.textPrimary),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.copy, size: 18, color: AppColors.primaryDark),
-                          onPressed: _copyPublicLink,
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
-                          tooltip: 'Copier',
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      Get.to(() => const PublicEventView());
-                    },
-                    icon: const Icon(Icons.open_in_new, size: 16),
-                    label: const Text('Voir comme un participant'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryDark,
-                      side: const BorderSide(color: AppColors.primary),
-                      minimumSize: const Size(double.infinity, 44),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            // ── Grille d'accès aux modules (Tableau de bord, Tâches, Dépenses, Participants) ──
-            const Text(
-              'Pilotage de la cérémonie',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            const SectionLabel('Cérémonie'),
+            const SizedBox(height: 8),
+            Text(
+              _event['title'] ?? '',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.6,
+                height: 1.25,
                 color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
+            Row(
+              children: [
+                AppTag(
+                  _event['type'] ?? 'Cérémonie',
+                  dotColor: AppColors.accent,
+                ),
+                const SizedBox(width: 6),
+                AppTag(
+                  _isPublished ? 'Publiée' : 'Brouillon',
+                  dotColor:
+                      _isPublished ? AppColors.success : AppColors.warning,
+                ),
+              ],
+            ),
+            const SizedBox(height: 22),
+            _buildInfoRow(
+              Icons.calendar_today_outlined,
+              '${_event['date']} · ${_event['time']}',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              Icons.location_on_outlined,
+              _event['location'] ?? 'Cotonou, Bénin',
+            ),
+            const SizedBox(height: 12),
+            _buildInfoRow(
+              Icons.confirmation_number_outlined,
+              _event['isPaid'] == true
+                  ? 'Participation · ${_event['fee'] ?? "15 000 FCFA"}'
+                  : 'Entrée libre',
+            ),
+            if ((_event['description'] ?? '').toString().isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _buildInfoRow(
+                Icons.notes_rounded,
+                _event['description'],
+              ),
+            ],
+            const SizedBox(height: 28),
 
+            _buildPublicationCard(),
+            const SizedBox(height: 28),
+
+            const SectionHeader(
+              title: 'Pilotage',
+              subtitle: 'Les outils de la cérémonie',
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
                   child: _buildModuleCard(
                     title: 'Tableau de bord',
                     subtitle: 'Indicateurs clés',
-                    icon: Icons.dashboard_customize_outlined,
-                    color: AppColors.primary,
-                    onTap: () {
-                      Get.to(() => const DashboardScreen());
-                    },
+                    icon: Icons.space_dashboard_outlined,
+                    onTap: () => Get.to(() => const DashboardScreen()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: _buildModuleCard(
                     title: 'Tâches',
-                    subtitle: '${_event['tasksCompleted'] ?? 8}/${_event['tasksTotal'] ?? 14} faites',
-                    icon: Icons.checklist_rounded,
-                    color: AppColors.info,
-                    onTap: () {
-                      Get.to(() => const TaskListView());
-                    },
+                    subtitle:
+                        '${_event['tasksDone'] ?? 8}/${_event['tasksTotal'] ?? 14} faites',
+                    icon: Icons.checklist_outlined,
+                    onTap: () => Get.to(() => const TaskListView()),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
                   child: _buildModuleCard(
-                    title: 'Budget & Dépenses',
-                    subtitle: 'Reste ${_event['budgetRestant'] ?? '700 000 F'}',
+                    title: 'Dépenses',
+                    subtitle:
+                        'Reste ${_event['budgetRestant'] ?? '700 000 FCFA'}',
                     icon: Icons.account_balance_wallet_outlined,
-                    color: AppColors.success,
-                    onTap: () {
-                      Get.to(() => const ExpenseListView());
-                    },
+                    onTap: () => Get.to(() => const ExpenseListView()),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: _buildModuleCard(
                     title: 'Participants',
-                    subtitle: '${_event['participantsCount'] ?? 64} inscrits',
+                    subtitle:
+                        '${_event['participantsCount'] ?? _event['participants'] ?? 64} inscrits',
                     icon: Icons.people_outline_rounded,
-                    color: AppColors.accentOrange,
-                    onTap: () {
-                      Get.to(() => const ParticipantsListView());
-                    },
+                    onTap: () => Get.to(() => const ParticipantsListView()),
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -407,16 +243,17 @@ class _EventDetailsViewState extends State<EventDetailsView> {
 
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: AppColors.textSecondary),
-        const SizedBox(width: 10),
+        Icon(icon, size: 16, color: AppColors.textTertiary),
+        const SizedBox(width: 11),
         Expanded(
           child: Text(
             text,
             style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.w500,
+              fontSize: 13,
+              height: 1.5,
+              color: AppColors.textSecondary,
             ),
           ),
         ),
@@ -424,11 +261,113 @@ class _EventDetailsViewState extends State<EventDetailsView> {
     );
   }
 
+  Widget _buildPublicationCard() {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Page publique',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      _isPublished
+                          ? 'Accessible aux participants'
+                          : 'Masquée aux invités',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _isPublished,
+                onChanged: (val) {
+                  setState(() => _isPublished = val);
+                  Get.snackbar(
+                    'Page publique',
+                    val ? 'La page est en ligne.' : 'La page est masquée.',
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          const Text(
+            'Lien de partage',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.only(left: 13, right: 6, top: 4, bottom: 4),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _publicLink,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy_rounded, size: 16),
+                  color: AppColors.textSecondary,
+                  onPressed: _copyPublicLink,
+                  tooltip: 'Copier',
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => Get.to(() => const PublicEventView()),
+              child: const Text('Voir comme un participant'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildModuleCard({
     required String title,
     required String subtitle,
     required IconData icon,
-    required Color color,
     required VoidCallback onTap,
   }) {
     return InkWell(
@@ -437,43 +376,30 @@ class _EventDetailsViewState extends State<EventDetailsView> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            ),
-          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(height: 14),
+            AppIconBox(icon: icon, size: 36, iconSize: 17, radius: 11),
+            const SizedBox(height: 16),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.bold,
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.1,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             Text(
               subtitle,
               style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
+                fontSize: 11,
+                color: AppColors.textTertiary,
               ),
             ),
           ],

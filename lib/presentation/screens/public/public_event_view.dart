@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
+import 'package:eventpilot/presentation/widgets/app_icon_box.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
+import 'package:eventpilot/presentation/widgets/app_text_field.dart';
+import 'package:eventpilot/presentation/widgets/section_header.dart';
 import 'package:eventpilot/presentation/screens/public/payment_simulation_view.dart';
 import 'package:eventpilot/presentation/screens/public/registration_success_view.dart';
 
@@ -45,13 +49,13 @@ class _PublicEventViewState extends State<PublicEventView> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => Container(
         padding: EdgeInsets.only(
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-          left: 20,
-          right: 20,
-          top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 22,
+          left: 24,
+          right: 24,
+          top: 12,
         ),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         child: SingleChildScrollView(
@@ -63,74 +67,69 @@ class _PublicEventViewState extends State<PublicEventView> {
               children: [
                 Center(
                   child: Container(
-                    width: 40,
+                    width: 36,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: AppColors.border,
+                      color: AppColors.borderStrong,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 24),
                 const Text(
-                  'Formulaire d\'inscription',
+                  'Inscription',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.2,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 5),
                 const Text(
                   'Renseignez vos coordonnées pour recevoir votre pass d\'accès.',
-                  style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 20),
-
-                // Nom complet
-                TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Nom complet *',
-                    hintText: 'Ex: Jean DUPONT',
-                    prefixIcon: const Icon(Icons.person_outline),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.5,
+                    color: AppColors.textSecondary,
                   ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Veuillez saisir votre nom' : null,
                 ),
-                const SizedBox(height: 14),
-
-                // Email
-                TextFormField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: 'Adresse e-mail *',
-                    hintText: 'jean.dupont@email.com',
-                    prefixIcon: const Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  validator: (v) => (v == null || !v.contains('@')) ? 'E-mail valide requis' : null,
-                ),
-                const SizedBox(height: 14),
-
-                // Téléphone
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    labelText: 'Numéro de téléphone *',
-                    hintText: '+229 97 00 00 00',
-                    prefixIcon: const Icon(Icons.phone_outlined),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Numéro de téléphone requis' : null,
-                ),
-
                 const SizedBox(height: 24),
-
+                AppTextField(
+                  label: 'Nom complet',
+                  hintText: 'Ex. Jean DUPONT',
+                  prefixIcon: Icons.person_outline_rounded,
+                  controller: _nameController,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Veuillez saisir votre nom'
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                AppTextField(
+                  label: 'Adresse e-mail',
+                  hintText: 'jean.dupont@email.com',
+                  prefixIcon: Icons.mail_outline_rounded,
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
+                  validator: (v) =>
+                      (v == null || !v.contains('@')) ? 'E-mail valide requis' : null,
+                ),
+                const SizedBox(height: 16),
+                AppTextField(
+                  label: 'Téléphone',
+                  hintText: '+229 97 00 00 00',
+                  prefixIcon: Icons.phone_outlined,
+                  keyboardType: TextInputType.phone,
+                  controller: _phoneController,
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Numéro de téléphone requis'
+                      : null,
+                ),
+                const SizedBox(height: 26),
                 AppButton(
-                  label: _isPaid ? 'Procéder au paiement ($_fee)' : 'Confirmer mon inscription',
+                  label: _isPaid
+                      ? 'Procéder au paiement ($_fee)'
+                      : 'Confirmer mon inscription',
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
                       Navigator.pop(ctx);
@@ -140,13 +139,15 @@ class _PublicEventViewState extends State<PublicEventView> {
                               participantEmail: _emailController.text.trim(),
                               participantPhone: _phoneController.text.trim(),
                               amount: _fee,
-                              eventTitle: widget.eventData?['title'] ?? 'Mariage Rita & Marc',
+                              eventTitle:
+                                  widget.eventData?['title'] ?? 'Mariage Rita & Marc',
                             ));
                       } else {
                         Get.to(() => RegistrationSuccessView(
                               participantName: _nameController.text.trim(),
                               participantEmail: _emailController.text.trim(),
-                              eventTitle: widget.eventData?['title'] ?? 'Mariage Rita & Marc',
+                              eventTitle:
+                                  widget.eventData?['title'] ?? 'Mariage Rita & Marc',
                               ticketCode: 'EP-FREE-9921',
                               isPaid: false,
                             ));
@@ -167,7 +168,7 @@ class _PublicEventViewState extends State<PublicEventView> {
     final event = widget.eventData ?? {
       'title': 'Mariage Rita & Marc',
       'type': 'Mariage',
-      'date': 'Samedi 14 Décembre 2026',
+      'date': 'Samedi 14 décembre 2026',
       'time': '15h00',
       'location': 'Hôtel du Lac, Cotonou, Bénin',
       'organizer': 'Marc KOUASSI',
@@ -179,70 +180,50 @@ class _PublicEventViewState extends State<PublicEventView> {
       backgroundColor: AppColors.background,
       body: CustomScrollView(
         slivers: [
-          // ── Bannière sliver ──
           SliverAppBar(
-            expandedHeight: 220.0,
+            expandedHeight: 210,
             pinned: true,
+            backgroundColor: AppColors.ink,
+            surfaceTintColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            scrolledUnderElevation: 0,
             leading: IconButton(
-              icon: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 16),
-              ),
+              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 21),
               onPressed: () => Get.back(),
             ),
             flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.parallax,
               background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFFE8B432), Color(0xFFC8921A), Color(0xFF4C3A8A)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Stack(
+                color: AppColors.ink,
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Positioned.fill(
-                      child: Opacity(
-                        opacity: 0.15,
-                        child: Icon(Icons.celebration_rounded, size: 240, color: Colors.white),
+                    AppTag(
+                      event['type'] ?? 'Cérémonie',
+                      dotColor: AppColors.accent,
+                      emphasized: true,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      event['title'] ?? 'Mariage Rita & Marc',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.7,
+                        height: 1.2,
                       ),
                     ),
-                    Positioned(
-                      bottom: 20,
-                      left: 20,
-                      right: 20,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              event['type'] ?? 'Cérémonie',
-                              style: const TextStyle(
-                                color: AppColors.primaryDark,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            event['title'] ?? 'Mariage Rita & Marc',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                    const SizedBox(height: 8),
+                    Text(
+                      '${event['date'] ?? ''} · ${event['location'] ?? ''}',
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11.5,
+                        height: 1.45,
                       ),
                     ),
                   ],
@@ -250,144 +231,38 @@ class _PublicEventViewState extends State<PublicEventView> {
               ),
             ),
           ),
-
-          // ── Contenu de la page publique (3.8.1 & 3.8.2) ──
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(20.0),
+              padding: const EdgeInsets.fromLTRB(22, 20, 22, 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Compte à rebours J-53
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.primarySoft,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.timer_outlined, color: Colors.white, size: 24),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'J-53 avant le grand jour !',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primaryDark,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                'Les inscriptions sont actuellement ouvertes.',
-                                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
+                  _buildCountdown(),
                   const SizedBox(height: 20),
-
-                  // Informations pratiques
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildInfoTile(
-                          icon: Icons.calendar_month_rounded,
-                          title: 'Date & Heure',
-                          subtitle: '${event['date']} · ${event['time']}',
-                        ),
-                        const Divider(height: 20),
-                        _buildInfoTile(
-                          icon: Icons.location_on_rounded,
-                          title: 'Lieu de réception',
-                          subtitle: event['location'] ?? 'Hôtel du Lac, Cotonou',
-                        ),
-                        const Divider(height: 20),
-                        _buildInfoTile(
-                          icon: Icons.confirmation_number_rounded,
-                          title: 'Participation',
-                          subtitle: _isPaid ? 'Événement payant : $_fee par personne' : 'Entrée libre et gratuite',
-                          badge: _isPaid ? _fee : 'Gratuit',
-                          badgeColor: _isPaid ? AppColors.info : AppColors.success,
-                        ),
-                        const Divider(height: 20),
-                        _buildInfoTile(
-                          icon: Icons.person_rounded,
-                          title: 'Organisé par',
-                          subtitle: event['organizer'] ?? 'Marc KOUASSI',
-                        ),
-                      ],
-                    ),
-                  ),
-
+                  const SectionLabel('Informations pratiques'),
+                  const SizedBox(height: 10),
+                  _buildInfoCard(event),
                   const SizedBox(height: 20),
-
-                  // Description
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'À propos de l\'événement',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          event['description'] ??
-                              'Nous serions ravis de partager ce moment unique en votre compagnie.',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: AppColors.textSecondary,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Bouton inscription
+                  const SectionLabel('À propos'),
+                  const SizedBox(height: 10),
+                  _buildDescription(event),
+                  const SizedBox(height: 28),
                   AppButton(
                     label: 'S\'inscrire à la cérémonie',
-                    icon: Icons.how_to_reg_rounded,
                     onPressed: _showRegistrationSheet,
                   ),
-
+                  const SizedBox(height: 6),
+                  Center(
+                    child: Text(
+                      _isPaid
+                          ? 'Participation de $_fee par personne'
+                          : 'Entrée libre et gratuite',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textTertiary,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 20),
                 ],
               ),
@@ -398,24 +273,133 @@ class _PublicEventViewState extends State<PublicEventView> {
     );
   }
 
+  Widget _buildCountdown() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        children: [
+          const AppIconBox(
+            icon: Icons.event_available_outlined,
+            size: 40,
+            iconSize: 18,
+          ),
+          const SizedBox(width: 13),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'J-53 avant le grand jour',
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  'Les inscriptions sont ouvertes.',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: AppColors.success,
+              shape: BoxShape.circle,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(Map<String, dynamic> event) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          _buildInfoTile(
+            icon: Icons.calendar_today_outlined,
+            title: 'Date & heure',
+            subtitle: '${event['date']} · ${event['time']}',
+          ),
+          const Divider(height: 26),
+          _buildInfoTile(
+            icon: Icons.place_outlined,
+            title: 'Lieu de réception',
+            subtitle: event['location'] ?? 'Hôtel du Lac, Cotonou',
+          ),
+          const Divider(height: 26),
+          _buildInfoTile(
+            icon: Icons.confirmation_number_outlined,
+            title: 'Participation',
+            subtitle: _isPaid
+                ? 'Événement payant par personne'
+                : 'Entrée libre et gratuite',
+            tag: _isPaid ? _fee : 'Gratuit',
+            tagColor: _isPaid ? AppColors.accent : AppColors.success,
+          ),
+          const Divider(height: 26),
+          _buildInfoTile(
+            icon: Icons.person_outline_rounded,
+            title: 'Organisé par',
+            subtitle: event['organizer'] ?? 'Marc KOUASSI',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDescription(Map<String, dynamic> event) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        event['description'] ??
+            'Nous serions ravis de partager ce moment unique en votre compagnie.',
+        style: const TextStyle(
+          fontSize: 13.5,
+          color: AppColors.textSecondary,
+          height: 1.65,
+        ),
+      ),
+    );
+  }
+
   Widget _buildInfoTile({
     required IconData icon,
     required String title,
     required String subtitle,
-    String? badge,
-    Color? badgeColor,
+    String? tag,
+    Color? tagColor,
   }) {
     return Row(
       children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: AppColors.primaryDark, size: 20),
-        ),
-        const SizedBox(width: 14),
+        AppIconBox(icon: icon, size: 38, iconSize: 17),
+        const SizedBox(width: 13),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -423,39 +407,28 @@ class _PublicEventViewState extends State<PublicEventView> {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 10.5,
+                  letterSpacing: 0.1,
+                  color: AppColors.textTertiary,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 3),
               Text(
                 subtitle,
                 style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  height: 1.35,
                   color: AppColors.textPrimary,
                 ),
               ),
             ],
           ),
         ),
-        if (badge != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: (badgeColor ?? AppColors.primary).withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              badge,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: badgeColor ?? AppColors.primary,
-              ),
-            ),
-          ),
+        if (tag != null) ...[
+          const SizedBox(width: 10),
+          AppTag(tag, dotColor: tagColor),
+        ],
       ],
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/screens/expenses/create_expense_view.dart';
+import 'package:eventpilot/presentation/widgets/app_icon_box.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
 
 class ExpenseListView extends StatefulWidget {
   const ExpenseListView({super.key});
@@ -31,7 +33,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       'category': 'Animation',
       'amount': 150000.0,
       'date': '21 oct. 2026',
-      'icon': Icons.music_note_rounded,
+      'icon': Icons.music_note_outlined,
     },
     {
       'id': '2',
@@ -47,7 +49,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       'category': 'Traiteur',
       'amount': 850000.0,
       'date': '24 oct. 2026',
-      'icon': Icons.restaurant_rounded,
+      'icon': Icons.restaurant_outlined,
     },
     {
       'id': '4',
@@ -55,7 +57,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       'category': 'Lieu',
       'amount': 500000.0,
       'date': '15 oct. 2026',
-      'icon': Icons.apartment_rounded,
+      'icon': Icons.apartment_outlined,
     },
     {
       'id': '5',
@@ -63,7 +65,7 @@ class _ExpenseListViewState extends State<ExpenseListView> {
       'category': 'Décoration',
       'amount': 200000.0,
       'date': '28 oct. 2026',
-      'icon': Icons.local_florist_rounded,
+      'icon': Icons.local_florist_outlined,
     },
   ];
 
@@ -75,7 +77,8 @@ class _ExpenseListViewState extends State<ExpenseListView> {
   double get _usedRatio =>
       _initialBudget > 0 ? (_totalSpent / _initialBudget).clamp(0.0, 1.0) : 0;
 
-  bool get _isBudgetLow => _remainingBudget < (_initialBudget * 0.3) && _remainingBudget >= 0;
+  bool get _isBudgetLow =>
+      _remainingBudget < (_initialBudget * 0.3) && _remainingBudget >= 0;
   bool get _isBudgetOver => _remainingBudget < 0;
 
   String _formatAmount(double amount) {
@@ -89,30 +92,48 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     final deleted = _expenses[index];
     Get.defaultDialog(
       title: 'Supprimer cette dépense ?',
-      middleText: 'Voulez-vous supprimer "${deleted['label']}" (${_formatAmount(deleted['amount'])} FCFA) ?',
+      titleStyle: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textPrimary,
+      ),
+      middleText:
+          '« ${deleted['label']} » (${_formatAmount(deleted['amount'])} FCFA) sera retirée du calcul.',
+      middleTextStyle: const TextStyle(
+        fontSize: 13,
+        height: 1.5,
+        color: AppColors.textSecondary,
+      ),
       textConfirm: 'Supprimer',
       textCancel: 'Annuler',
-      buttonColor: AppColors.error,
+      buttonColor: AppColors.ink,
       confirmTextColor: Colors.white,
+      cancelTextColor: AppColors.textSecondary,
       onConfirm: () {
         setState(() {
           _expenses.removeAt(index);
         });
         Get.back();
-        Get.snackbar(
-          'Dépense supprimée',
-          'La dépense a été retirée du calcul du budget.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        Get.snackbar('Dépense supprimée', 'Le budget a été recalculé.');
       },
     );
   }
 
   void _editExpense(int index) async {
-    final result = await Get.to(() => CreateExpenseView(expenseToEdit: _expenses[index]));
+    final result =
+        await Get.to(() => CreateExpenseView(expenseToEdit: _expenses[index]));
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
         _expenses[index] = result;
+      });
+    }
+  }
+
+  Future<void> _addExpense() async {
+    final result = await Get.to(() => const CreateExpenseView());
+    if (result != null && result is Map<String, dynamic>) {
+      setState(() {
+        _expenses.insert(0, result);
       });
     }
   }
@@ -126,237 +147,56 @@ class _ExpenseListViewState extends State<ExpenseListView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
-        title: const Text(
-          'Budget & Dépenses',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Budget & dépenses'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add, color: AppColors.primary, size: 28),
+            icon: const Icon(Icons.add, size: 22),
             tooltip: 'Ajouter une dépense',
-            onPressed: () async {
-              final result = await Get.to(() => const CreateExpenseView());
-              if (result != null && result is Map<String, dynamic>) {
-                setState(() {
-                  _expenses.insert(0, result);
-                });
-              }
-            },
+            onPressed: _addExpense,
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            // ── En-tête de synthèse budgétaire (3.4.5 & 3.4.6 & 3.4.7) ──
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // Carte Synthèse jaune / dorée
-                  Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFE8B432), Color(0xFFC8921A)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.25),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Budget restant',
-                              style: TextStyle(color: Colors.white70, fontSize: 13),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '${(_usedRatio * 100).round()} % consommé',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '${_formatAmount(_remainingBudget)} FCFA',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(6),
-                          child: LinearProgressIndicator(
-                            value: _usedRatio,
-                            minHeight: 7,
-                            backgroundColor: Colors.white.withValues(alpha: 0.3),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              _isBudgetOver ? AppColors.error : Colors.white,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Budget initial', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                                Text(
-                                  '${_formatAmount(_initialBudget)} F',
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Text('Total dépensé', style: TextStyle(color: Colors.white70, fontSize: 11)),
-                                Text(
-                                  '${_formatAmount(_totalSpent)} F',
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // ── Alerte budgétaire si budget faible (3.4.7) ──
-                  if (_isBudgetLow || _isBudgetOver) ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _isBudgetOver ? AppColors.errorSoft : AppColors.warningSoft,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _isBudgetOver ? AppColors.error.withValues(alpha: 0.3) : AppColors.warning.withValues(alpha: 0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _isBudgetOver ? Icons.error_outline : Icons.warning_amber_rounded,
-                            color: _isBudgetOver ? AppColors.error : AppColors.warning,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _isBudgetOver
-                                  ? 'Dépassement de budget ! Le total dépensé dépasse le budget prévisionnel.'
-                                  : 'Attention : le budget restant devient faible (${((1 - _usedRatio) * 100).round()}% restant).',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _isBudgetOver ? AppColors.error : const Color(0xFFB45309),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 6, 22, 16),
+              child: _buildBudgetCard(),
             ),
-
-            // ── Filtre par catégorie ──
-            Container(
+            SizedBox(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              color: Colors.white,
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.fromLTRB(22, 0, 22, 14),
                 child: Row(
                   children: _categories.map((cat) {
-                    final isSel = _selectedCategory == cat;
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: ChoiceChip(
-                        label: Text(cat),
-                        selected: isSel,
-                        selectedColor: AppColors.primary,
-                        backgroundColor: const Color(0xFFF3F4F6),
-                        labelStyle: TextStyle(
-                          fontSize: 12,
-                          fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                          color: isSel ? Colors.white : AppColors.textSecondary,
-                        ),
-                        onSelected: (val) {
-                          setState(() => _selectedCategory = cat);
-                        },
+                      padding: const EdgeInsets.only(right: 7),
+                      child: AppFilterChip(
+                        label: cat,
+                        selected: _selectedCategory == cat,
+                        onTap: () =>
+                            setState(() => _selectedCategory = cat),
                       ),
                     );
                   }).toList(),
                 ),
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            // ── Liste des dépenses enregistrées (3.4.2) ──
             Expanded(
               child: filteredExpenses.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.receipt_long_outlined, size: 56, color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                          const SizedBox(height: 10),
-                          const Text(
-                            'Aucune dépense dans cette catégorie',
-                            style: TextStyle(color: AppColors.textSecondary),
-                          ),
-                        ],
-                      ),
-                    )
+                  ? _buildEmptyState()
                   : ListView.separated(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      padding: const EdgeInsets.fromLTRB(22, 2, 22, 28),
                       itemCount: filteredExpenses.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 9),
                       itemBuilder: (context, index) {
                         final expense = filteredExpenses[index];
                         final realIndex = _expenses.indexOf(expense);
@@ -368,10 +208,14 @@ class _ExpenseListViewState extends State<ExpenseListView> {
                             alignment: Alignment.centerRight,
                             padding: const EdgeInsets.only(right: 20),
                             decoration: BoxDecoration(
-                              color: AppColors.error,
-                              borderRadius: BorderRadius.circular(16),
+                              color: AppColors.surfaceMuted,
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                            child: const Icon(Icons.delete_outline, color: Colors.white),
+                            child: const Icon(
+                              Icons.delete_outline,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
                           ),
                           confirmDismiss: (dir) async {
                             _deleteExpense(realIndex);
@@ -379,84 +223,56 @@ class _ExpenseListViewState extends State<ExpenseListView> {
                           },
                           child: InkWell(
                             onTap: () => _editExpense(realIndex),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(15),
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(16),
+                                color: AppColors.surface,
+                                borderRadius: BorderRadius.circular(15),
                                 border: Border.all(color: AppColors.border),
                               ),
                               child: Row(
                                 children: [
-                                  Container(
-                                    width: 44,
-                                    height: 44,
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFEEF2FF),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Icon(
-                                      expense['icon'] as IconData? ?? Icons.payments_outlined,
-                                      color: AppColors.accentPurple,
-                                      size: 22,
-                                    ),
+                                  AppIconBox(
+                                    icon: expense['icon'] as IconData? ??
+                                        Icons.payments_outlined,
+                                    size: 40,
+                                    iconSize: 18,
                                   ),
-                                  const SizedBox(width: 14),
+                                  const SizedBox(width: 12),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           expense['label'],
                                           style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                            height: 1.35,
                                             color: AppColors.textPrimary,
                                           ),
                                         ),
                                         const SizedBox(height: 3),
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFF3F4F6),
-                                                borderRadius: BorderRadius.circular(6),
-                                              ),
-                                              child: Text(
-                                                expense['category'],
-                                                style: const TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.textSecondary,
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              expense['date'],
-                                              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                                            ),
-                                          ],
+                                        Text(
+                                          '${expense['category']} · ${expense['date']}',
+                                          style: const TextStyle(
+                                            fontSize: 10.5,
+                                            color: AppColors.textTertiary,
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      Text(
-                                        '- ${_formatAmount(expense['amount'])} F',
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.error,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
-                                    ],
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    '− ${_formatAmount(expense['amount'])} F',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.textPrimary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -469,17 +285,172 @@ class _ExpenseListViewState extends State<ExpenseListView> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final result = await Get.to(() => const CreateExpenseView());
-          if (result != null && result is Map<String, dynamic>) {
-            setState(() {
-              _expenses.insert(0, result);
-            });
-          }
-        },
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white, size: 28),
+    );
+  }
+
+  Widget _buildBudgetCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.ink,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Budget restant',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.2,
+              color: Colors.white70,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${_formatAmount(_remainingBudget)} FCFA',
+            style: const TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.8,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: _usedRatio,
+              minHeight: 5,
+              backgroundColor: Colors.white.withValues(alpha: 0.18),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Initial',
+                    style: TextStyle(fontSize: 10.5, color: Colors.white54),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${_formatAmount(_initialBudget)} F',
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'Dépensé',
+                    style: TextStyle(fontSize: 10.5, color: Colors.white54),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    '${_formatAmount(_totalSpent)} F · ${(_usedRatio * 100).round()} %',
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          if (_isBudgetLow || _isBudgetOver) ...[
+            const SizedBox(height: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 5,
+                    height: 5,
+                    margin: const EdgeInsets.only(top: 4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white70,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _isBudgetOver
+                          ? 'Le total dépensé dépasse le budget prévisionnel.'
+                          : 'Le budget restant devient faible (${((1 - _usedRatio) * 100).round()} % restant).',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        height: 1.45,
+                        color: Colors.white70,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceMuted,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.receipt_long_outlined,
+                size: 21,
+                color: AppColors.textTertiary,
+              ),
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Aucune dépense',
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Cette catégorie est encore vide.',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

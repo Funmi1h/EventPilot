@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
 import 'package:eventpilot/presentation/widgets/app_text_field.dart';
@@ -14,7 +13,6 @@ class CreateEventView extends StatefulWidget {
 class _CreateEventViewState extends State<CreateEventView> {
   int _currentStep = 0;
 
-  // Contrôleurs — étape 1
   final _nomController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _lieuController = TextEditingController();
@@ -22,7 +20,6 @@ class _CreateEventViewState extends State<CreateEventView> {
   DateTime? _selectedDate;
   String _selectedHeure = '15:00';
 
-  // Contrôleurs — étape 2
   final _budgetController = TextEditingController();
   final _montantController = TextEditingController();
   bool _isPayante = false;
@@ -83,8 +80,9 @@ class _CreateEventViewState extends State<CreateEventView> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
+              primary: AppColors.ink,
               onPrimary: Colors.white,
+              surface: AppColors.surface,
             ),
           ),
           child: child!,
@@ -99,107 +97,94 @@ class _CreateEventViewState extends State<CreateEventView> {
   void _goToStep2() {
     if (_formKey1.currentState!.validate()) {
       if (_selectedDate == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Veuillez sélectionner une date.')),
-        );
+        _showMessage('Veuillez sélectionner une date.');
         return;
       }
       setState(() => _currentStep = 1);
     }
   }
 
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   void _createEvent() {
     if (_formKey2.currentState!.validate()) {
-      // TODO: logique de création / appel API
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Événement créé avec succès !'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      _showMessage('Cérémonie créée.');
       Navigator.of(context).pop();
     }
   }
 
-  // ─────────────────────────────────────────
-  // Widgets de l'indicateur de progression
-  // ─────────────────────────────────────────
+  // ── Indicateur d'étapes ──
 
   Widget _buildStepIndicator() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 18),
       child: Row(
         children: [
-          _buildStepCircle(0, 'Informations'),
+          _buildStepLabel(0, 'Informations'),
           Expanded(
             child: Container(
-              height: 2,
-              color: _currentStep >= 1 ? AppColors.success : AppColors.border,
+              height: 1,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              color: _currentStep >= 1
+                  ? AppColors.ink
+                  : AppColors.border,
             ),
           ),
-          _buildStepCircle(1, 'Budget & accès'),
+          _buildStepLabel(1, 'Budget & accès'),
         ],
       ),
     );
   }
 
-  Widget _buildStepCircle(int step, String label) {
-    final bool isCompleted = _currentStep > step;
+  Widget _buildStepLabel(int step, String label) {
     final bool isActive = _currentStep == step;
+    final bool isDone = _currentStep > step;
 
-    Color circleColor;
-    Widget circleChild;
-
-    if (isCompleted) {
-      circleColor = AppColors.success;
-      circleChild = const Icon(Icons.check, color: Colors.white, size: 16);
-    } else if (isActive) {
-      circleColor = AppColors.primary;
-      circleChild = Text(
-        '${step + 1}',
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    } else {
-      circleColor = AppColors.border;
-      circleChild = Text(
-        '${step + 1}',
-        style: const TextStyle(
-          color: AppColors.textSecondary,
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-        ),
-      );
-    }
-
-    return Column(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 32,
-          height: 32,
-          decoration: BoxDecoration(color: circleColor, shape: BoxShape.circle),
+          width: 22,
+          height: 22,
           alignment: Alignment.center,
-          child: circleChild,
+          decoration: BoxDecoration(
+            color: isActive || isDone ? AppColors.ink : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isActive || isDone
+                  ? AppColors.ink
+                  : AppColors.borderStrong,
+            ),
+          ),
+          child: isDone
+              ? const Icon(Icons.check, size: 12, color: Colors.white)
+              : Text(
+                  '${step + 1}',
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w600,
+                    color: isActive ? Colors.white : AppColors.textTertiary,
+                  ),
+                ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(width: 8),
         Text(
           label,
           style: TextStyle(
             fontSize: 12,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            color: isActive ? AppColors.textPrimary : AppColors.textSecondary,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+            color: isActive ? AppColors.textPrimary : AppColors.textTertiary,
           ),
         ),
       ],
     );
   }
 
-  // ─────────────────────────────────────────
-  // Étape 1 : Informations
-  // ─────────────────────────────────────────
+  // ── Étape 1 ──
 
   Widget _buildStep1() {
     return Form(
@@ -207,31 +192,24 @@ class _CreateEventViewState extends State<CreateEventView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nom de la cérémonie
           AppTextField(
             label: 'Nom de la cérémonie',
-            hintText: 'Ex : Mariage Rita & Marc',
+            hintText: 'Ex. Mariage Rita & Marc',
             controller: _nomController,
             validator: (v) => (v == null || v.trim().isEmpty)
                 ? 'Ce champ est obligatoire'
                 : null,
           ),
-          const SizedBox(height: 20),
-
-          // Type de cérémonie
+          const SizedBox(height: 18),
           _buildDropdownField(),
-          const SizedBox(height: 20),
-
-          // Description
+          const SizedBox(height: 18),
           AppTextField(
             label: 'Description',
-            hintText: 'Décrivez votre événement…',
+            hintText: 'Quelques mots sur l\'événement…',
             controller: _descriptionController,
             maxLines: 3,
           ),
-          const SizedBox(height: 20),
-
-          // Date + Heure
+          const SizedBox(height: 18),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -240,20 +218,16 @@ class _CreateEventViewState extends State<CreateEventView> {
               Expanded(child: _buildHeureDropdown()),
             ],
           ),
-          const SizedBox(height: 20),
-
-          // Lieu
+          const SizedBox(height: 18),
           AppTextField(
             label: 'Lieu',
-            hintText: 'Ex : Hôtel du Lac, Cotonou',
+            hintText: 'Ex. Hôtel du Lac, Cotonou',
             controller: _lieuController,
             validator: (v) => (v == null || v.trim().isEmpty)
                 ? 'Ce champ est obligatoire'
                 : null,
           ),
-          const SizedBox(height: 32),
-
-          // Bouton Continuer
+          const SizedBox(height: 30),
           AppButton(label: 'Continuer', onPressed: _goToStep2),
         ],
       ),
@@ -267,9 +241,9 @@ class _CreateEventViewState extends State<CreateEventView> {
         const Text(
           'Type de cérémonie',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12.5,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -280,33 +254,11 @@ class _CreateEventViewState extends State<CreateEventView> {
           items: _typesCeremonie
               .map((t) => DropdownMenuItem(value: t, child: Text(t)))
               .toList(),
-          style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+          style: const TextStyle(fontSize: 14.5, color: AppColors.textPrimary),
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textSecondary,
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.surface,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 1.5,
-              ),
-            ),
+            color: AppColors.textTertiary,
+            size: 20,
           ),
         ),
       ],
@@ -320,20 +272,20 @@ class _CreateEventViewState extends State<CreateEventView> {
         const Text(
           'Date',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12.5,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
         GestureDetector(
           onTap: _pickDate,
           child: Container(
-            height: 50,
+            height: 55,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(13),
               border: Border.all(color: AppColors.border),
             ),
             child: Row(
@@ -347,14 +299,14 @@ class _CreateEventViewState extends State<CreateEventView> {
                       fontSize: 14,
                       color: _selectedDate != null
                           ? AppColors.textPrimary
-                          : AppColors.textSecondary,
+                          : AppColors.textTertiary,
                     ),
                   ),
                 ),
                 const Icon(
                   Icons.calendar_today_outlined,
-                  size: 18,
-                  color: AppColors.textSecondary,
+                  size: 16,
+                  color: AppColors.textTertiary,
                 ),
               ],
             ),
@@ -371,9 +323,9 @@ class _CreateEventViewState extends State<CreateEventView> {
         const Text(
           'Heure',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12.5,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
@@ -386,39 +338,15 @@ class _CreateEventViewState extends State<CreateEventView> {
           style: const TextStyle(fontSize: 14, color: AppColors.textPrimary),
           icon: const Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: AppColors.textSecondary,
-          ),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: AppColors.surface,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: AppColors.primary,
-                width: 1.5,
-              ),
-            ),
+            color: AppColors.textTertiary,
+            size: 20,
           ),
         ),
       ],
     );
   }
 
-  // ─────────────────────────────────────────
-  // Étape 2 : Budget & accès
-  // ─────────────────────────────────────────
+  // ── Étape 2 ──
 
   Widget _buildStep2() {
     return Form(
@@ -426,10 +354,9 @@ class _CreateEventViewState extends State<CreateEventView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Budget
           AppTextField(
             label: 'Budget prévisionnel (FCFA)',
-            hintText: 'Ex : 2 500 000',
+            hintText: 'Ex. 2 500 000',
             controller: _budgetController,
             keyboardType: TextInputType.number,
             validator: (v) => (v == null || v.trim().isEmpty)
@@ -437,16 +364,12 @@ class _CreateEventViewState extends State<CreateEventView> {
                 : null,
           ),
           const SizedBox(height: 20),
-
-          // Toggle Gratuite / Payante
           _buildParticipationToggle(),
           const SizedBox(height: 20),
-
-          // Montant (affiché uniquement si Payante)
           if (_isPayante) ...[
             AppTextField(
               label: 'Montant de participation (FCFA)',
-              hintText: 'Ex : 15 000',
+              hintText: 'Ex. 15 000',
               controller: _montantController,
               keyboardType: TextInputType.number,
               validator: (v) => (_isPayante && (v == null || v.trim().isEmpty))
@@ -455,17 +378,14 @@ class _CreateEventViewState extends State<CreateEventView> {
             ),
             const SizedBox(height: 20),
           ],
-
-          // Info lien public
           _buildInfoBox(),
           const SizedBox(height: 20),
-
-          // Récapitulatif
           _buildRecapitulatif(),
-          const SizedBox(height: 32),
-
-          // Bouton Créer
-          AppButton(label: "Créer l'événement", onPressed: _createEvent),
+          const SizedBox(height: 30),
+          AppButton(
+            label: 'Créer la cérémonie',
+            onPressed: _createEvent,
+          ),
         ],
       ),
     );
@@ -478,15 +398,16 @@ class _CreateEventViewState extends State<CreateEventView> {
         const Text(
           'Conditions de participation',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 12.5,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
         Container(
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: AppColors.border,
+            color: AppColors.surfaceMuted,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -505,19 +426,18 @@ class _CreateEventViewState extends State<CreateEventView> {
       child: GestureDetector(
         onTap: () => setState(() => _isPayante = label == 'Payante'),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          margin: const EdgeInsets.all(4),
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 11),
           decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
+            color: isSelected ? AppColors.ink : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
           ),
           alignment: Alignment.center,
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
               color: isSelected ? Colors.white : AppColors.textSecondary,
             ),
           ),
@@ -530,22 +450,21 @@ class _CreateEventViewState extends State<CreateEventView> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.success.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.success.withValues(alpha: 0.25)),
+        color: AppColors.surfaceMuted,
+        borderRadius: BorderRadius.circular(13),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.link_rounded, color: AppColors.success, size: 20),
+          const Icon(Icons.link_rounded, color: AppColors.accent, size: 18),
           const SizedBox(width: 10),
-          Expanded(
+          const Expanded(
             child: Text(
               'Un lien public unique sera généré pour partager la cérémonie et recevoir les inscriptions.',
               style: TextStyle(
-                fontSize: 13,
-                color: AppColors.success.withValues(alpha: 0.9),
-                height: 1.4,
+                fontSize: 12,
+                height: 1.5,
+                color: AppColors.textSecondary,
               ),
             ),
           ),
@@ -569,7 +488,7 @@ class _CreateEventViewState extends State<CreateEventView> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
@@ -581,8 +500,8 @@ class _CreateEventViewState extends State<CreateEventView> {
           const Text(
             'Récapitulatif',
             style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.bold,
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
           ),
@@ -612,8 +531,8 @@ class _CreateEventViewState extends State<CreateEventView> {
             child: Text(
               label,
               style: const TextStyle(
-                fontSize: 13,
-                color: AppColors.textSecondary,
+                fontSize: 12,
+                color: AppColors.textTertiary,
               ),
             ),
           ),
@@ -622,8 +541,8 @@ class _CreateEventViewState extends State<CreateEventView> {
               value,
               textAlign: TextAlign.right,
               style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
             ),
@@ -633,23 +552,13 @@ class _CreateEventViewState extends State<CreateEventView> {
     );
   }
 
-  // ─────────────────────────────────────────
-  // Build principal
-  // ─────────────────────────────────────────
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () {
             if (_currentStep == 1) {
               setState(() => _currentStep = 0);
@@ -658,28 +567,24 @@ class _CreateEventViewState extends State<CreateEventView> {
             }
           },
         ),
-        title: const Text(
-          'Nouvel événement',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Nouvelle cérémonie'),
       ),
       body: Column(
         children: [
-          Container(color: AppColors.surface, child: _buildStepIndicator()),
+          _buildStepIndicator(),
+          const Divider(height: 1),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 260),
                 transitionBuilder: (child, animation) =>
                     FadeTransition(opacity: animation, child: child),
                 child: _currentStep == 0
-                    ? KeyedSubtree(key: const ValueKey(0), child: _buildStep1())
+                    ? KeyedSubtree(
+                        key: const ValueKey(0),
+                        child: _buildStep1(),
+                      )
                     : KeyedSubtree(
                         key: const ValueKey(1),
                         child: _buildStep2(),

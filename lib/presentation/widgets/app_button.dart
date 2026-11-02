@@ -3,22 +3,19 @@ import 'package:eventpilot/core/theme/app_colors.dart';
 
 /// Types de boutons disponibles dans l'application.
 enum AppButtonType {
-  /// Bouton rempli (fond jaune doré) — actions principales.
+  /// Bouton plein (encre) — action principale.
   primary,
 
-  /// Bouton avec bordure sans fond — actions secondaires.
+  /// Bouton avec bordure fine — action secondaire.
   outlined,
 
-  /// Bouton texte simple — liens, actions tertiaires.
+  /// Bouton texte — action tertiaire.
   text,
 }
 
-/// Bouton réutilisable pour toute l'application.
+/// Bouton réutilisable, sobre et cohérent.
 ///
-/// Exemples depuis la maquette :
-/// - « Créer un compte » / « S'inscrire » / « Se connecter » → [AppButtonType.primary]
-/// - « Se connecter » (page accueil, bordure blanche) → [AppButtonType.outlined]
-/// - « Déjà un compte ? Se connecter » → [AppButtonType.text]
+/// Pas d'ombre, pas de dégradé : une forme simple, une seule couleur forte.
 class AppButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -43,21 +40,19 @@ class AppButton extends StatelessWidget {
     this.backgroundColor,
     this.foregroundColor,
     this.borderColor,
-    this.height = 52,
-    this.borderRadius = 12,
+    this.height = 54,
+    this.borderRadius = 14,
   });
 
   @override
   Widget build(BuildContext context) {
     final Widget child = isLoading
         ? SizedBox(
-            width: 22,
-            height: 22,
+            width: 20,
+            height: 20,
             child: CircularProgressIndicator(
-              strokeWidth: 2.5,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                _foregroundColor,
-              ),
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(_foregroundColor),
             ),
           )
         : _buildLabel();
@@ -69,17 +64,21 @@ class AppButton extends StatelessWidget {
         button = ElevatedButton(
           onPressed: isLoading ? null : onPressed,
           style: ElevatedButton.styleFrom(
-            backgroundColor: backgroundColor ?? AppColors.primary,
+            backgroundColor: backgroundColor ?? AppColors.ink,
             foregroundColor: foregroundColor ?? Colors.white,
-            disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.5),
+            disabledBackgroundColor:
+                (backgroundColor ?? AppColors.ink).withValues(alpha: 0.35),
+            disabledForegroundColor: Colors.white70,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            minimumSize: Size(0, height),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
             ),
-            elevation: 0,
-            minimumSize: Size(0, height),
             textStyle: const TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.1,
             ),
           ),
           child: child,
@@ -90,18 +89,20 @@ class AppButton extends StatelessWidget {
         button = OutlinedButton(
           onPressed: isLoading ? null : onPressed,
           style: OutlinedButton.styleFrom(
-            foregroundColor: foregroundColor ?? AppColors.primary,
+            backgroundColor: backgroundColor ?? AppColors.surface,
+            foregroundColor: foregroundColor ?? AppColors.textPrimary,
             side: BorderSide(
-              color: borderColor ?? AppColors.primary,
-              width: 1.5,
+              color: borderColor ?? AppColors.borderStrong,
+              width: 1,
             ),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius),
             ),
             minimumSize: Size(0, height),
             textStyle: const TextStyle(
-              fontSize: 16,
+              fontSize: 15,
               fontWeight: FontWeight.w600,
+              letterSpacing: 0.1,
             ),
           ),
           child: child,
@@ -112,9 +113,9 @@ class AppButton extends StatelessWidget {
         button = TextButton(
           onPressed: isLoading ? null : onPressed,
           style: TextButton.styleFrom(
-            foregroundColor: foregroundColor ?? AppColors.primary,
+            foregroundColor: foregroundColor ?? AppColors.textSecondary,
             textStyle: const TextStyle(
-              fontSize: 14,
+              fontSize: 13.5,
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -135,7 +136,7 @@ class AppButton extends StatelessWidget {
         return Colors.white;
       case AppButtonType.outlined:
       case AppButtonType.text:
-        return AppColors.primary;
+        return AppColors.textPrimary;
     }
   }
 
@@ -146,11 +147,10 @@ class AppButton extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20),
-        const SizedBox(width: 8),
+        Icon(icon, size: 18),
+        const SizedBox(width: 9),
         Text(label),
       ],
     );
   }
 }
-

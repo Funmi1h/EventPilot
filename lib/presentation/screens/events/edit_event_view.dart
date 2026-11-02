@@ -36,19 +36,28 @@ class _EditEventViewState extends State<EditEventView> {
   @override
   void initState() {
     super.initState();
-    // Utilise les arguments GetX si disponibles, sinon données mockées
     final args = Get.arguments as Map<String, dynamic>?;
     final data = widget.eventData ?? args ?? {};
-    _titleController = TextEditingController(text: data['title'] ?? 'Mariage Rita & Marc');
-    _locationController = TextEditingController(text: data['location'] ?? 'Hôtel du Lac, Cotonou');
+    _titleController =
+        TextEditingController(text: data['title'] ?? 'Mariage Rita & Marc');
+    _locationController = TextEditingController(
+      text: data['location'] ?? 'Hôtel du Lac, Cotonou',
+    );
     _budgetController = TextEditingController(
-      text: (data['budgetInitial'] ?? '2500000').toString().replaceAll(' FCFA', '').replaceAll(' ', ''),
+      text: (data['budgetInitial'] ?? '2500000')
+          .toString()
+          .replaceAll(' FCFA', '')
+          .replaceAll(' ', ''),
     );
     _feeController = TextEditingController(
-      text: (data['fee'] ?? '15000').toString().replaceAll(' FCFA', '').replaceAll(' ', ''),
+      text: (data['fee'] ?? '15000')
+          .toString()
+          .replaceAll(' FCFA', '')
+          .replaceAll(' ', ''),
     );
     _descriptionController = TextEditingController(
-      text: data['description'] ?? 'Cérémonie officielle et réception conviviale avec famille et amis.',
+      text: data['description'] ??
+          'Cérémonie officielle et réception conviviale avec famille et amis.',
     );
     _eventType = data['type'] ?? 'Mariage';
     _isPaid = data['isPaid'] ?? true;
@@ -81,13 +90,7 @@ class _EditEventViewState extends State<EditEventView> {
       };
 
       Get.back(result: updatedData);
-      Get.snackbar(
-        'Succès',
-        'Informations de la cérémonie mises à jour avec succès.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.successSoft,
-        colorText: AppColors.success,
-      );
+      Get.snackbar('Cérémonie mise à jour', 'Vos modifications sont enregistrées.');
     }
   }
 
@@ -96,24 +99,14 @@ class _EditEventViewState extends State<EditEventView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
-        title: const Text(
-          'Modifier la cérémonie',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Modifier la cérémonie'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.fromLTRB(22, 8, 22, 32),
         child: Form(
           key: _formKey,
           child: Column(
@@ -122,17 +115,18 @@ class _EditEventViewState extends State<EditEventView> {
               AppTextField(
                 label: 'Nom de la cérémonie',
                 controller: _titleController,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Champ requis'
+                    : null,
               ),
               const SizedBox(height: 18),
 
-              // Type de cérémonie
               const Text(
                 'Type de cérémonie',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -144,18 +138,14 @@ class _EditEventViewState extends State<EditEventView> {
                 onChanged: (val) {
                   if (val != null) setState(() => _eventType = val);
                 },
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  color: AppColors.textPrimary,
+                ),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.textTertiary,
+                  size: 20,
                 ),
               ),
               const SizedBox(height: 18),
@@ -163,7 +153,9 @@ class _EditEventViewState extends State<EditEventView> {
               AppTextField(
                 label: 'Lieu',
                 controller: _locationController,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Champ requis'
+                    : null,
               ),
               const SizedBox(height: 18),
 
@@ -171,68 +163,35 @@ class _EditEventViewState extends State<EditEventView> {
                 label: 'Budget prévisionnel (FCFA)',
                 controller: _budgetController,
                 keyboardType: TextInputType.number,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Champ requis' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Champ requis'
+                    : null,
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 20),
 
-              // Conditions de participation
               const Text(
                 'Conditions de participation',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  color: AppColors.border,
+                  color: AppColors.surfaceMuted,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isPaid = false),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: !_isPaid ? AppColors.primary : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Gratuite',
-                            style: TextStyle(
-                              color: !_isPaid ? Colors.white : AppColors.textSecondary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _isPaid = true),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: _isPaid ? AppColors.primary : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'Payante',
-                            style: TextStyle(
-                              color: _isPaid ? Colors.white : AppColors.textSecondary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildToggle('Gratuite', !_isPaid, () {
+                      setState(() => _isPaid = false);
+                    }),
+                    _buildToggle('Payante', _isPaid, () {
+                      setState(() => _isPaid = true);
+                    }),
                   ],
                 ),
               ),
@@ -243,7 +202,10 @@ class _EditEventViewState extends State<EditEventView> {
                   label: 'Montant de participation (FCFA)',
                   controller: _feeController,
                   keyboardType: TextInputType.number,
-                  validator: (v) => (_isPaid && (v == null || v.trim().isEmpty)) ? 'Champ requis' : null,
+                  validator: (v) =>
+                      (_isPaid && (v == null || v.trim().isEmpty))
+                          ? 'Champ requis'
+                          : null,
                 ),
                 const SizedBox(height: 18),
               ],
@@ -253,15 +215,39 @@ class _EditEventViewState extends State<EditEventView> {
                 controller: _descriptionController,
                 maxLines: 3,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 30),
 
               AppButton(
                 label: 'Enregistrer les modifications',
                 isLoading: _isLoading,
                 onPressed: _saveChanges,
               ),
-              const SizedBox(height: 20),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggle(String label, bool selected, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.ink : Colors.transparent,
+            borderRadius: BorderRadius.circular(9),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: selected ? Colors.white : AppColors.textSecondary,
+            ),
           ),
         ),
       ),

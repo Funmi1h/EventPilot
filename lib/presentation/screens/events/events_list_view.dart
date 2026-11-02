@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/widgets/app_card.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
 import 'package:eventpilot/presentation/screens/events/create_event_view.dart';
 import 'package:eventpilot/presentation/screens/events/event_details_view.dart';
 
@@ -79,6 +80,10 @@ class _EventsListViewState extends State<EventsListView> {
     },
   ];
 
+  void _openCreate() {
+    Get.to(() => const CreateEventView());
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredEvents = _selectedFilter == 'Toutes'
@@ -88,106 +93,87 @@ class _EventsListViewState extends State<EventsListView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          'Mes Cérémonies',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        title: const Text('Cérémonies'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.primary, size: 26),
+            icon: const Icon(Icons.add, size: 22),
             tooltip: 'Nouvelle cérémonie',
-            onPressed: () {
-              Get.to(() => const CreateEventView());
-            },
+            onPressed: _openCreate,
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            // ── Filtres de statut ──
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              child: Row(
-                children: _filters.map((filter) {
-                  final isSelected = _selectedFilter == filter;
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(filter),
-                      selected: isSelected,
-                      selectedColor: AppColors.primary,
-                      backgroundColor: const Color(0xFFF3F4F6),
-                      labelStyle: TextStyle(
-                        fontSize: 13,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        color: isSelected ? Colors.white : AppColors.textSecondary,
+            SizedBox(
+              width: double.infinity,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.fromLTRB(22, 6, 22, 14),
+                child: Row(
+                  children: _filters.map((filter) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 7),
+                      child: AppFilterChip(
+                        label: filter,
+                        selected: _selectedFilter == filter,
+                        onTap: () =>
+                            setState(() => _selectedFilter = filter),
                       ),
-                      onSelected: (val) {
-                        setState(() => _selectedFilter = filter);
-                      },
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-
-            const SizedBox(height: 12),
-
-            // ── Liste des cartes événements ──
             Expanded(
               child: filteredEvents.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.event_busy_outlined, size: 64, color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Aucune cérémonie trouvée',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                          ),
-                        ],
-                      ),
-                    )
+                  ? _buildEmptyState()
                   : ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      padding: const EdgeInsets.fromLTRB(22, 4, 22, 28),
                       itemCount: filteredEvents.length,
                       itemBuilder: (context, index) {
                         final event = filteredEvents[index];
                         return Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.only(bottom: 12),
                           child: AppCard(
                             title: event['title'],
-                            subtitle: '${event['date']} · ${event['time']} · ${event['location']}',
+                            subtitle:
+                                '${event['date']} · ${event['time']}\n${event['location']}',
                             progress: event['progress'],
-                            progressLabel: '${event['tasksCompleted']}/${event['tasksTotal']} tâches faites',
+                            progressLabel:
+                                '${event['tasksCompleted']}/${event['tasksTotal']} tâches faites',
                             badges: [
-                              AppCard.badge(event['type'], AppColors.primary),
-                              if (event['isPublished'])
-                                AppCard.badge('Page publiée', AppColors.success)
-                              else
-                                AppCard.badge('Brouillon', AppColors.warning),
-                              if (event['isPaid'])
-                                AppCard.badge('${event['fee']}', AppColors.info)
-                              else
-                                AppCard.badge('Entrée libre', AppColors.success),
+                              AppTag(
+                                event['type'],
+                                dotColor: AppColors.accent,
+                              ),
+                              AppTag(
+                                event['isPublished']
+                                    ? 'Page publiée'
+                                    : 'Brouillon',
+                                dotColor: event['isPublished']
+                                    ? AppColors.success
+                                    : AppColors.warning,
+                              ),
+                              AppTag(
+                                event['isPaid']
+                                    ? event['fee']
+                                    : 'Entrée libre',
+                                dotColor: event['isPaid']
+                                    ? AppColors.info
+                                    : AppColors.success,
+                              ),
                             ],
                             trailing: const Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 16,
-                              color: AppColors.textSecondary,
+                              Icons.arrow_forward_rounded,
+                              size: 17,
+                              color: AppColors.textTertiary,
                             ),
                             onTap: () {
-                              Get.to(() => EventDetailsView(eventData: event));
+                              Get.to(() =>
+                                  EventDetailsView(eventData: event));
                             },
                           ),
                         );
@@ -197,15 +183,47 @@ class _EventsListViewState extends State<EventsListView> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Get.to(() => const CreateEventView());
-        },
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Créer un événement',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 52,
+              height: 52,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceMuted,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(
+                Icons.event_outlined,
+                size: 22,
+                color: AppColors.textTertiary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Aucune cérémonie',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'Vos cérémonies apparaîtront ici.',
+              style: TextStyle(
+                fontSize: 12.5,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );

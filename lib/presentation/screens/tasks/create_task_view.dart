@@ -2,326 +2,237 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
-import 'package:eventpilot/presentation/screens/tasks/controllers/create_task_controller.dart';
+import 'package:eventpilot/presentation/widgets/app_text_field.dart';
 
-class CreateTaskView extends GetView<CreateTaskController> {
+class CreateTaskView extends StatefulWidget {
   const CreateTaskView({super.key});
 
   @override
+  State<CreateTaskView> createState() => _CreateTaskViewState();
+}
+
+class _CreateTaskViewState extends State<CreateTaskView> {
+  final _titleController =
+      TextEditingController(text: 'Confirmer le traiteur');
+  final _descriptionController = TextEditingController(
+    text:
+        'Appeler Saveurs du Bénin pour valider le menu et le nombre de couverts.',
+  );
+  DateTime _deadline = DateTime(2026, 10, 18);
+  String _status = 'En cours';
+  bool _reminder = true;
+
+  final List<String> _statuses = ['À faire', 'En cours', 'Terminée'];
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _deadline,
+      firstDate: DateTime(2024),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.ink,
+              onPrimary: Colors.white,
+              surface: AppColors.surface,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _deadline = picked);
+    }
+  }
+
+  String get _formattedDate {
+    return '${_deadline.day.toString().padLeft(2, '0')}/'
+        '${_deadline.month.toString().padLeft(2, '0')}/'
+        '${_deadline.year}';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const String selectedStatus = 'En cours';
-    const List<String> statuses = ['À faire', 'En cours', 'Terminée'];
-
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Barre de navigation supérieure ──
-              Row(
-                children: [
-                  InkWell(
-                    onTap: () => Get.back(),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Icon(
-                        Icons.chevron_left,
-                        color: AppColors.textPrimary,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Text(
-                    'Nouvelle tâche',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 21),
+          onPressed: () => Get.back(),
+        ),
+        title: const Text('Nouvelle tâche'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(22, 8, 22, 32),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            AppTextField(
+              label: 'Titre de la tâche',
+              hintText: 'Ex. Confirmer le traiteur',
+              controller: _titleController,
+            ),
+            const SizedBox(height: 18),
+            AppTextField(
+              label: 'Description',
+              hintText: 'Détails de la tâche…',
+              controller: _descriptionController,
+              maxLines: 4,
+            ),
+            const SizedBox(height: 18),
 
-              const SizedBox(height: 24),
-
-              // ── Champ : Titre de la tâche ──
-              const Text(
-                'Titre de la tâche',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
+            const Text(
+              'Date limite',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
               ),
-              const SizedBox(height: 8),
-              TextFormField(
-                initialValue: 'Confirmer le traiteur',
-                decoration: InputDecoration(
-                  hintText: 'Ex: Confirmer le traiteur',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ── Champ : Description ──
-              const Text(
-                'Description',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                initialValue:
-                    'Appeler Saveurs du Bénin pour valider le menu et le nombre de couverts.',
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: 'Détails de la tâche...',
-                  hintStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 14,
-                  ),
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                      width: 1.5,
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ── Champ : Date limite ──
-              const Text(
-                'Date limite',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: _pickDate,
+              child: Container(
+                height: 55,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(13),
                   border: Border.all(color: AppColors.border),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
+                  children: [
                     Text(
-                      '18/10/2026',
-                      style: TextStyle(
-                        fontSize: 15,
+                      _formattedDate,
+                      style: const TextStyle(
+                        fontSize: 14,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.calendar_today_outlined,
-                      color: AppColors.textSecondary,
-                      size: 20,
+                      color: AppColors.textTertiary,
+                      size: 16,
                     ),
                   ],
                 ),
               ),
+            ),
+            const SizedBox(height: 20),
 
-              const SizedBox(height: 20),
-
-              // ── Champ : Statut ──
-              const Text(
-                'Statut',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
-                ),
+            const Text(
+              'Statut',
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.textSecondary,
               ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F3F6),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: statuses.map((status) {
-                    final isSelected = selectedStatus == status;
-                    return Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceMuted,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: _statuses.map((status) {
+                  final selected = _status == status;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() => _status = status),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
                         decoration: BoxDecoration(
-                          color: isSelected ? Colors.white : Colors.transparent,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: isSelected
-                              ? [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.06),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ]
-                              : [],
+                          color:
+                              selected ? AppColors.ink : Colors.transparent,
+                          borderRadius: BorderRadius.circular(9),
                         ),
+                        alignment: Alignment.center,
                         child: Text(
                           status,
-                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: isSelected
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: isSelected
-                                ? AppColors.primary
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w500,
+                            color: selected
+                                ? Colors.white
                                 : AppColors.textSecondary,
                           ),
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              // ── Card Rappel d'échéance ──
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: AppColors.warningSoft,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.notifications_outlined,
-                        color: AppColors.warning,
-                        size: 22,
-                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "Rappel d'échéance",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Rappel d\'échéance',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
                           ),
-                          SizedBox(height: 2),
-                          Text(
-                            "Afficher la tâche sur le tableau de bord à l'approche de la date limite.",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.textSecondary,
-                              height: 1.3,
-                            ),
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          'Afficher la tâche sur le tableau de bord à l\'approche de la date limite.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            height: 1.45,
+                            color: AppColors.textSecondary,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Switch(
-                      value: true,
-                      activeColor: Colors.white,
-                      activeTrackColor: AppColors.primary,
-                      onChanged: (val) {},
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 8),
+                  Switch(
+                    value: _reminder,
+                    onChanged: (val) => setState(() => _reminder = val),
+                  ),
+                ],
               ),
+            ),
+            const SizedBox(height: 30),
 
-              const SizedBox(height: 32),
-
-              // ── Bouton Enregistrer ──
-              AppButton(
-                label: 'Enregistrer la tâche',
-                onPressed: () => Get.back(),
-              ),
-
-              const SizedBox(height: 12),
-
-              // ── Bouton Annuler ──
-              AppButton(
-                label: 'Annuler',
-                type: AppButtonType.text,
-                onPressed: () => Get.back(),
-              ),
-
-              const SizedBox(height: 20),
-            ],
-          ),
+            AppButton(
+              label: 'Enregistrer la tâche',
+              onPressed: () => Get.back(),
+            ),
+            const SizedBox(height: 8),
+            AppButton(
+              label: 'Annuler',
+              type: AppButtonType.text,
+              onPressed: () => Get.back(),
+            ),
+          ],
         ),
       ),
     );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:eventpilot/core/theme/app_colors.dart';
+import 'package:eventpilot/core/theme/app_theme.dart';
 import 'package:eventpilot/core/routes/app_pages.dart';
 import 'package:eventpilot/core/routes/app_routes.dart';
 
@@ -22,11 +22,20 @@ class MyApp extends StatelessWidget {
       initialRoute: AppRoutes.HOME,
       getPages: AppPages.pages,
       defaultTransition: Transition.fadeIn,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
-        scaffoldBackgroundColor: AppColors.background,
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light,
+      // Sur navigateur ou tablette, l'application reste une colonne lisible
+      // au lieu de s'étirer sur toute la largeur de l'écran.
+      builder: (context, child) {
+        return ColoredBox(
+          color: const Color(0xFFF0ECE4),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: child ?? const SizedBox.shrink(),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
+import 'package:eventpilot/presentation/widgets/app_icon_box.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
 
 class PaymentsListView extends StatefulWidget {
   const PaymentsListView({super.key});
@@ -11,7 +13,7 @@ class PaymentsListView extends StatefulWidget {
 
 class _PaymentsListViewState extends State<PaymentsListView> {
   String _selectedFilter = 'Tous';
-  final List<String> _filters = ['Tous', 'Réussis (64)', 'En attente (6)'];
+  final List<String> _filters = ['Tous', 'Réussis', 'En attente'];
 
   final List<Map<String, dynamic>> _payments = [
     {
@@ -78,311 +80,394 @@ class _PaymentsListViewState extends State<PaymentsListView> {
   }
 
   void _showReceiptDialog(Map<String, dynamic> payment) {
+    final isSuccess = payment['status'] == 'Réussi';
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        contentPadding: const EdgeInsets.all(24),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Reçu de transaction',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: () => Navigator.pop(ctx),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
-            ),
-            const Divider(height: 24),
-            Center(
-              child: Column(
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: const BorderSide(color: AppColors.border),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(22, 18, 22, 22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  Text(
-                    '${_formatAmount(payment['amount'])} FCFA',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryDark,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: payment['status'] == 'Réussi' ? AppColors.successSoft : AppColors.warningSoft,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  const Expanded(
                     child: Text(
-                      'Paiement ${payment['status']}',
+                      'Reçu de transaction',
                       style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: payment['status'] == 'Réussi' ? AppColors.success : AppColors.warning,
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.2,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                    color: AppColors.textTertiary,
+                    onPressed: () => Navigator.pop(ctx),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            _buildReceiptRow('Participant', payment['participant']),
-            _buildReceiptRow('Moyen de paiement', payment['method']),
-            _buildReceiptRow('Date & Heure', payment['date']),
-            _buildReceiptRow('Référence', payment['reference']),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF3F4F6),
-                borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 18),
+              const Divider(height: 1),
+              const SizedBox(height: 22),
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      '${_formatAmount(payment['amount'])} FCFA',
+                      style: const TextStyle(
+                        fontSize: 27,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.8,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    AppTag(
+                      'Paiement ${payment['status'].toString().toLowerCase()}',
+                      dotColor: isSuccess
+                          ? AppColors.success
+                          : AppColors.warning,
+                    ),
+                  ],
+                ),
               ),
-              child: const Text(
-                'Transaction enregistrée via le simulateur de paiement EventPilot.',
-                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                textAlign: TextAlign.center,
+              const SizedBox(height: 24),
+              _buildReceiptRow('Participant', payment['participant']),
+              const SizedBox(height: 10),
+              _buildReceiptRow('Moyen de paiement', payment['method']),
+              const SizedBox(height: 10),
+              _buildReceiptRow('Date & heure', payment['date']),
+              const SizedBox(height: 10),
+              _buildReceiptRow('Référence', payment['reference']),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceMuted,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  'Transaction enregistrée via le simulateur de paiement EventPilot.',
+                  style: TextStyle(
+                    fontSize: 11,
+                    height: 1.45,
+                    color: AppColors.textSecondary,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildReceiptRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
-          Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-        ],
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 120,
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textTertiary,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              height: 1.4,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final filtered = _payments.where((p) {
-      if (_selectedFilter.startsWith('Réussis')) return p['status'] == 'Réussi';
-      if (_selectedFilter.startsWith('En attente')) return p['status'] == 'En attente';
+      if (_selectedFilter == 'Réussis') return p['status'] == 'Réussi';
+      if (_selectedFilter == 'En attente') return p['status'] == 'En attente';
       return true;
     }).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
-        title: const Text(
-          'Historique des paiements',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: const Text('Paiements'),
       ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            // ── Bannière total collecté (3.6.6) ──
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.all(20),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(22, 6, 22, 14),
               child: Column(
                 children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFBBF7D0)),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF16A34A),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 26),
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
-                              Text(
-                                'Montant total collecté',
-                                style: TextStyle(
-                                  color: Color(0xFF16A34A),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                '960 000 FCFA',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                '64 paiements réussis · 6 en attente',
-                                style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildTotalCard(),
                   const SizedBox(height: 14),
-
-                  // ── Filtres ──
-                  Row(
-                    children: _filters.map((f) {
-                      final isSel = _selectedFilter == f;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: ChoiceChip(
-                          label: Text(f),
-                          selected: isSel,
-                          selectedColor: AppColors.primary,
-                          backgroundColor: const Color(0xFFF3F4F6),
-                          labelStyle: TextStyle(
-                            fontSize: 12,
-                            fontWeight: isSel ? FontWeight.bold : FontWeight.normal,
-                            color: isSel ? Colors.white : AppColors.textSecondary,
-                          ),
-                          onSelected: (val) {
-                            setState(() => _selectedFilter = f);
-                          },
-                        ),
-                      );
-                    }).toList(),
+                  SizedBox(
+                    width: double.infinity,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: _filters.map((f) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 7),
+                            child: AppFilterChip(
+                              label: f,
+                              selected: _selectedFilter == f,
+                              onTap: () =>
+                                  setState(() => _selectedFilter = f),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-
-            const SizedBox(height: 10),
-
-            // ── Liste des transactions (3.6.4 & 3.6.5) ──
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                itemCount: filtered.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
-                itemBuilder: (context, index) {
-                  final p = filtered[index];
-                  final isSuccess = p['status'] == 'Réussi';
+              child: filtered.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(22, 2, 22, 28),
+                      itemCount: filtered.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 9),
+                      itemBuilder: (context, index) {
+                        final p = filtered[index];
+                        final isSuccess = p['status'] == 'Réussi';
 
-                  return InkWell(
-                    onTap: () => _showReceiptDialog(p),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 42,
-                            height: 42,
+                        return InkWell(
+                          onTap: () => _showReceiptDialog(p),
+                          borderRadius: BorderRadius.circular(15),
+                          child: Container(
+                            padding: const EdgeInsets.all(14),
                             decoration: BoxDecoration(
-                              color: isSuccess ? AppColors.successSoft : AppColors.warningSoft,
-                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(color: AppColors.border),
                             ),
-                            child: Icon(
-                              isSuccess ? Icons.check_circle_outline : Icons.pending_outlined,
-                              color: isSuccess ? AppColors.success : AppColors.warning,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                Text(
-                                  p['participant'],
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppColors.textPrimary,
+                                AppIconBox(
+                                  icon: isSuccess
+                                      ? Icons.check_rounded
+                                      : Icons.schedule_rounded,
+                                  size: 38,
+                                  iconSize: 17,
+                                  color: AppColors.textSecondary,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        p['participant'],
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '${p['method']} · ${p['date']}',
+                                        style: const TextStyle(
+                                          fontSize: 10.5,
+                                          color: AppColors.textTertiary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  '${p['method']} · ${p['date']}',
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: AppColors.textSecondary,
-                                  ),
+                                const SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      '+ ${_formatAmount(p['amount'])} F',
+                                      style: const TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    AppTag(
+                                      p['status'],
+                                      dotColor: isSuccess
+                                          ? AppColors.success
+                                          : AppColors.warning,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '+ ${_formatAmount(p['amount'])} F',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: isSuccess ? AppColors.success : AppColors.warning,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                p['status'],
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.bold,
-                                  color: isSuccess ? AppColors.success : AppColors.warning,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTotalCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.ink,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Montant total collecté',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.2,
+              color: Colors.white70,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '960 000 FCFA',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w600,
+              letterSpacing: -0.8,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            height: 1,
+            color: Colors.white.withValues(alpha: 0.12),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              const _StatusDot(color: AppColors.success),
+              const SizedBox(width: 7),
+              const Text(
+                '64 réussis',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white70,
+                ),
+              ),
+              const SizedBox(width: 16),
+              const _StatusDot(color: AppColors.warning),
+              const SizedBox(width: 7),
+              const Text(
+                '6 en attente',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white70,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.receipt_long_outlined,
+              size: 21,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Aucun paiement',
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Aucune transaction ne correspond à ce filtre.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusDot extends StatelessWidget {
+  final Color color;
+
+  const _StatusDot({required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 5,
+      height: 5,
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
     );
   }
 }

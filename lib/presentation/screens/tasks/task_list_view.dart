@@ -1,272 +1,218 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
-import 'package:eventpilot/presentation/screens/tasks/controllers/task_list_controller.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
 import 'package:eventpilot/presentation/screens/tasks/create_task_view.dart';
+import 'package:eventpilot/presentation/widgets/section_header.dart';
 
-class TaskListView extends GetView<TaskListController> {
+class TaskListView extends StatefulWidget {
   const TaskListView({super.key});
 
   @override
+  State<TaskListView> createState() => _TaskListViewState();
+}
+
+class _TaskListViewState extends State<TaskListView> {
+  String _selectedFilter = 'Toutes';
+
+  final List<Map<String, dynamic>> _tasks = [
+    {
+      'title': 'Réserver la salle de réception',
+      'subtitle': 'Hôtel du Lac — acompte versé',
+      'deadline': '15 oct.',
+      'status': 'Terminée',
+      'completed': true,
+      'overdue': false,
+    },
+    {
+      'title': 'Confirmer le traiteur',
+      'subtitle': 'Valider le menu et le nombre de couverts',
+      'deadline': '18 oct.',
+      'status': 'En retard',
+      'completed': false,
+      'overdue': true,
+    },
+    {
+      'title': 'Commander la décoration florale',
+      'subtitle': 'Thème blanc et doré',
+      'deadline': '05 nov.',
+      'status': 'En cours',
+      'completed': false,
+      'overdue': false,
+    },
+    {
+      'title': 'Envoyer les invitations',
+      'subtitle': 'Liste de 120 invités',
+      'deadline': '10 nov.',
+      'status': 'À faire',
+      'completed': false,
+      'overdue': false,
+    },
+  ];
+
+  List<Map<String, dynamic>> get _filtered {
+    switch (_selectedFilter) {
+      case 'À faire':
+        return _tasks.where((t) => t['status'] == 'À faire').toList();
+      case 'En cours':
+        return _tasks.where((t) => t['status'] == 'En cours').toList();
+      case 'Terminées':
+        return _tasks.where((t) => t['completed'] == true).toList();
+      case 'En retard':
+        return _tasks.where((t) => t['overdue'] == true).toList();
+      default:
+        return _tasks;
+    }
+  }
+
+  void _toggleTask(int index) {
+    setState(() {
+      final task = _tasks[index];
+      task['completed'] = !(task['completed'] as bool);
+      if (task['completed'] as bool) {
+        task['status'] = 'Terminée';
+        task['overdue'] = false;
+      } else {
+        task['status'] = 'À faire';
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    const String selectedFilter = 'Toutes';
-    final List<String> filters = ['Toutes', 'À faire', 'En cours', 'En retard (1)'];
+    final filters = ['Toutes', 'À faire', 'En cours', 'En retard', 'Terminées'];
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ── En-tête : bouton retour + Titre ──
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-              child: Row(
-                children: [
-                  InkWell(
-                    onTap: () => Get.back(),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: const Icon(
-                        Icons.chevron_left,
-                        color: AppColors.textPrimary,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  const Text(
-                    'Tâches',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── Contenu scrollable ──
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  // ── Carte progression des préparatifs ──
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF6F8FE),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFFE8EEF8)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Progression des préparatifs',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: const [
-                            Text(
-                              '8 / 14 tâches terminées',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                            Text(
-                              '57 %',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: const LinearProgressIndicator(
-                            value: 0.57,
-                            minHeight: 6,
-                            backgroundColor: Color(0xFFE0E5FB),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  // ── Filtres horizontaux ──
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: filters.map((filter) {
-                        final isSelected = selectedFilter == filter;
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primary : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.border,
-                              ),
-                            ),
-                            child: Text(
-                              filter,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w500,
-                                color: isSelected
-                                    ? Colors.white
-                                    : (filter.startsWith('En retard')
-                                        ? AppColors.warning
-                                        : AppColors.textSecondary),
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // ── Tâche 1 : Terminée ──
-                  _buildTaskCard(
-                    title: 'Réserver la salle de réception',
-                    subtitle: 'Hôtel du Lac — acompte versé',
-                    deadline: 'Échéance : 15 oct.',
-                    status: 'Terminée',
-                    isCompleted: true,
-                    isOverdue: false,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── Tâche 2 : En retard ──
-                  _buildTaskCard(
-                    title: 'Confirmer le traiteur',
-                    subtitle: 'Valider le menu et le nombre de couverts',
-                    deadline: 'Échéance : 18 oct. · dépassée',
-                    status: 'En retard',
-                    isCompleted: false,
-                    isOverdue: true,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── Tâche 3 : En cours ──
-                  _buildTaskCard(
-                    title: 'Commander la décoration florale',
-                    subtitle: 'Thème blanc et doré',
-                    deadline: 'Échéance : 05 nov.',
-                    status: 'En cours',
-                    isCompleted: false,
-                    isOverdue: false,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ── Tâche 4 : À faire ──
-                  _buildTaskCard(
-                    title: 'Envoyer les invitations',
-                    subtitle: 'Liste de 120 invités',
-                    deadline: 'Échéance : 10 nov.',
-                    status: 'À faire',
-                    isCompleted: false,
-                    isOverdue: false,
-                  ),
-
-                  const SizedBox(height: 80),
-                ],
-              ),
-            ),
-          ],
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, size: 21),
+          onPressed: () => Get.back(),
         ),
-      ),
-
-      // ── Bouton flottant (+) ──
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.35),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: () => Get.to(() => const CreateTaskView()),
-          backgroundColor: AppColors.primary,
-          elevation: 0,
-          shape: const CircleBorder(),
-          child: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 28,
+        title: const Text('Tâches'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, size: 22),
+            tooltip: 'Nouvelle tâche',
+            onPressed: () => Get.to(() => const CreateTaskView()),
           ),
+          const SizedBox(width: 8),
+        ],
+      ),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(22, 8, 22, 28),
+          children: [
+            _buildProgressCard(),
+            const SizedBox(height: 20),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: filters.map((filter) {
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 7),
+                    child: AppFilterChip(
+                      label: filter,
+                      selected: _selectedFilter == filter,
+                      onTap: () =>
+                          setState(() => _selectedFilter = filter),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (_filtered.isEmpty)
+              _buildEmptyState()
+            else
+              ...List<Widget>.generate(_filtered.length, (index) {
+                final task = _filtered[index];
+                final realIndex = _tasks.indexOf(task);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _buildTaskCard(task, realIndex),
+                );
+              }),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildTaskCard({
-    required String title,
-    required String subtitle,
-    required String deadline,
-    required String status,
-    required bool isCompleted,
-    required bool isOverdue,
-  }) {
-    Color borderColor = AppColors.border;
-    if (isOverdue) {
-      borderColor = const Color(0xFFFFD1D1);
-    }
+  Widget _buildProgressCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionLabel('Progression'),
+          const SizedBox(height: 8),
+          const Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '8',
+                style: TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.8,
+                  height: 1,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(bottom: 3),
+                child: Text(
+                  '  sur 14 tâches',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: const LinearProgressIndicator(
+              value: 0.57,
+              minHeight: 5,
+              backgroundColor: AppColors.surfaceMuted,
+              valueColor: AlwaysStoppedAnimation<Color>(AppColors.ink),
+            ),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            '57 % des préparatifs terminés',
+            style: TextStyle(
+              fontSize: 11,
+              color: AppColors.textTertiary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTaskCard(Map<String, dynamic> task, int index) {
+    final bool completed = task['completed'] as bool;
+    final bool overdue = task['overdue'] as bool;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: borderColor, width: isOverdue ? 1.2 : 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,24 +220,26 @@ class TaskListView extends GetView<TaskListController> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isCompleted ? AppColors.success : Colors.transparent,
-                  border: Border.all(
-                    color: isCompleted
-                        ? AppColors.success
-                        : (isOverdue
-                            ? const Color(0xFFFF8A5B)
-                            : AppColors.border),
-                    width: 1.6,
+              GestureDetector(
+                onTap: () => _toggleTask(index),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 160),
+                  width: 21,
+                  height: 21,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: completed ? AppColors.ink : Colors.transparent,
+                    border: Border.all(
+                      color: completed
+                          ? AppColors.ink
+                          : (overdue ? AppColors.error : AppColors.borderStrong),
+                      width: 1.3,
+                    ),
                   ),
+                  child: completed
+                      ? const Icon(Icons.check, size: 12, color: Colors.white)
+                      : null,
                 ),
-                child: isCompleted
-                    ? const Icon(Icons.check, size: 14, color: Colors.white)
-                    : null,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -299,23 +247,25 @@ class TaskListView extends GetView<TaskListController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      task['title'],
                       style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: isCompleted
-                            ? AppColors.textSecondary
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        height: 1.35,
+                        color: completed
+                            ? AppColors.textTertiary
                             : AppColors.textPrimary,
-                        decoration: isCompleted
-                            ? TextDecoration.lineThrough
-                            : null,
+                        decoration:
+                            completed ? TextDecoration.lineThrough : null,
+                        decorationColor: AppColors.textTertiary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      subtitle,
+                      task['subtitle'],
                       style: const TextStyle(
-                        fontSize: 13,
+                        fontSize: 12,
+                        height: 1.45,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -324,7 +274,7 @@ class TaskListView extends GetView<TaskListController> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -332,25 +282,27 @@ class TaskListView extends GetView<TaskListController> {
                 children: [
                   Icon(
                     Icons.calendar_today_outlined,
-                    size: 14,
-                    color: isOverdue
-                        ? AppColors.warning
-                        : AppColors.textSecondary,
+                    size: 13,
+                    color: overdue
+                        ? AppColors.error
+                        : AppColors.textTertiary,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    deadline,
+                    'Échéance ${task['deadline']}',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: isOverdue ? FontWeight.w600 : FontWeight.normal,
-                      color: isOverdue
-                          ? AppColors.warning
-                          : AppColors.textSecondary,
+                      fontSize: 11,
+                      color: overdue
+                          ? AppColors.error
+                          : AppColors.textTertiary,
                     ),
                   ),
                 ],
               ),
-              _buildStatusBadge(status),
+              AppTag(
+                task['status'],
+                dotColor: _statusColor(task['status']),
+              ),
             ],
           ),
         ],
@@ -358,43 +310,55 @@ class TaskListView extends GetView<TaskListController> {
     );
   }
 
-  Widget _buildStatusBadge(String status) {
-    Color bg;
-    Color fg;
-
+  Color _statusColor(String status) {
     switch (status) {
       case 'Terminée':
-        bg = AppColors.successSoft;
-        fg = AppColors.success;
-        break;
+        return AppColors.success;
       case 'En retard':
-        bg = const Color(0xFFFFECEC);
-        fg = const Color(0xFFF97316);
-        break;
+        return AppColors.error;
       case 'En cours':
-        bg = AppColors.warningSoft;
-        fg = const Color(0xFFC8921A);
-        break;
-      case 'À faire':
+        return AppColors.accent;
       default:
-        bg = const Color(0xFFF3F4F6);
-        fg = AppColors.textSecondary;
-        break;
+        return AppColors.textTertiary;
     }
+  }
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: fg,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-        ),
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48),
+      child: Column(
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceMuted,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.checklist_rounded,
+              size: 21,
+              color: AppColors.textTertiary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'Aucune tâche ici',
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Changez de filtre ou ajoutez une tâche.',
+            style: TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }

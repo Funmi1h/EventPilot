@@ -45,7 +45,8 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
           ? (widget.expenseToEdit!['amount'] as double).toInt().toString()
           : '',
     );
-    if (widget.expenseToEdit != null && widget.expenseToEdit!['category'] != null) {
+    if (widget.expenseToEdit != null &&
+        widget.expenseToEdit!['category'] != null) {
       _selectedCategory = widget.expenseToEdit!['category'];
     }
   }
@@ -73,8 +74,9 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
+              primary: AppColors.ink,
               onPrimary: Colors.white,
+              surface: AppColors.surface,
             ),
           ),
           child: child!,
@@ -89,15 +91,15 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
   IconData _iconForCategory(String category) {
     switch (category) {
       case 'Animation':
-        return Icons.music_note_rounded;
+        return Icons.music_note_outlined;
       case 'Impression':
         return Icons.description_outlined;
       case 'Traiteur':
-        return Icons.restaurant_rounded;
+        return Icons.restaurant_outlined;
       case 'Lieu':
-        return Icons.apartment_rounded;
+        return Icons.apartment_outlined;
       case 'Décoration':
-        return Icons.local_florist_rounded;
+        return Icons.local_florist_outlined;
       case 'Logistique':
         return Icons.local_shipping_outlined;
       case 'Tenue':
@@ -113,10 +115,12 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
       await Future.delayed(const Duration(milliseconds: 500));
       setState(() => _isLoading = false);
 
-      final double amount = double.tryParse(_amountController.text.trim()) ?? 0.0;
+      final double amount =
+          double.tryParse(_amountController.text.trim()) ?? 0.0;
 
       final expenseData = {
-        'id': widget.expenseToEdit?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id': widget.expenseToEdit?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'label': _labelController.text.trim(),
         'category': _selectedCategory,
         'amount': amount,
@@ -128,9 +132,6 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
       Get.snackbar(
         _isEditing ? 'Dépense modifiée' : 'Dépense enregistrée',
         'Le budget restant a été mis à jour.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: AppColors.successSoft,
-        colorText: AppColors.success,
       );
     }
   }
@@ -140,47 +141,33 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary, size: 20),
+          icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
-        title: Text(
-          _isEditing ? 'Modifier la dépense' : 'Nouvelle dépense',
-          style: const TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: Text(_isEditing ? 'Modifier la dépense' : 'Nouvelle dépense'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.fromLTRB(22, 8, 22, 32),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ── Libellé ──
               AppTextField(
                 label: 'Libellé de la dépense',
-                hintText: 'Ex: Acompte traiteur, DJ, Location chaises...',
+                hintText: 'Ex. Acompte traiteur, DJ, location…',
                 controller: _labelController,
-                prefixIcon: Icons.receipt_long_outlined,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Veuillez saisir un libellé' : null,
+                validator: (v) => (v == null || v.trim().isEmpty)
+                    ? 'Veuillez saisir un libellé'
+                    : null,
               ),
-
-              const SizedBox(height: 20),
-
-              // ── Montant ──
+              const SizedBox(height: 18),
               AppTextField(
                 label: 'Montant (FCFA)',
-                hintText: 'Ex: 150000',
+                hintText: 'Ex. 150 000',
                 controller: _amountController,
                 keyboardType: TextInputType.number,
-                prefixIcon: Icons.payments_outlined,
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
                     return 'Veuillez renseigner le montant';
@@ -191,16 +178,14 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
                   return null;
                 },
               ),
+              const SizedBox(height: 18),
 
-              const SizedBox(height: 20),
-
-              // ── Catégorie ──
               const Text(
                 'Catégorie',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -212,41 +197,35 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
                 onChanged: (val) {
                   if (val != null) setState(() => _selectedCategory = val);
                 },
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.border),
-                  ),
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  color: AppColors.textPrimary,
+                ),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: AppColors.textTertiary,
+                  size: 20,
                 ),
               ),
+              const SizedBox(height: 18),
 
-              const SizedBox(height: 20),
-
-              // ── Date de la dépense ──
               const Text(
                 'Date de la dépense',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textPrimary,
+                  color: AppColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: _pickDate,
                 child: Container(
-                  height: 52,
+                  height: 55,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(13),
                     border: Border.all(color: AppColors.border),
                   ),
                   child: Row(
@@ -254,26 +233,30 @@ class _CreateExpenseViewState extends State<CreateExpenseView> {
                     children: [
                       Text(
                         _formatDate(_selectedDate),
-                        style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                      const Icon(Icons.calendar_today_outlined, size: 20, color: AppColors.textSecondary),
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 16,
+                        color: AppColors.textTertiary,
+                      ),
                     ],
                   ),
                 ),
               ),
+              const SizedBox(height: 30),
 
-              const SizedBox(height: 36),
-
-              // ── Bouton Enregistrer ──
               AppButton(
-                label: _isEditing ? 'Mettre à jour la dépense' : 'Enregistrer la dépense',
+                label: _isEditing
+                    ? 'Mettre à jour la dépense'
+                    : 'Enregistrer la dépense',
                 isLoading: _isLoading,
-                icon: Icons.check_circle_outline,
                 onPressed: _saveExpense,
               ),
-
-              const SizedBox(height: 12),
-
+              const SizedBox(height: 8),
               AppButton(
                 label: 'Annuler',
                 type: AppButtonType.text,

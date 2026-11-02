@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 
-/// Champ de texte réutilisable pour toute l'application.
+/// Champ de texte réutilisable.
 ///
-/// Utilisé dans les formulaires d'inscription, connexion, profil, etc.
-/// Supporte : label, hint, icône préfixe/suffixe, mot de passe, validation.
+/// Libellé discret au-dessus, surface blanche, bordure fine qui s'assombrit
+/// au focus. Le champ ne crie pas : il guide.
 class AppTextField extends StatefulWidget {
   final String label;
   final String? hintText;
@@ -51,18 +51,16 @@ class _AppTextFieldState extends State<AppTextField> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Label ──
         Text(
           widget.label,
           style: const TextStyle(
-            fontSize: 14,
+            fontSize: 12.5,
             fontWeight: FontWeight.w500,
-            color: AppColors.textPrimary,
+            letterSpacing: 0.1,
+            color: AppColors.textSecondary,
           ),
         ),
         const SizedBox(height: 8),
-
-        // ── Champ ──
         TextFormField(
           controller: widget.controller,
           obscureText: _isObscured,
@@ -72,24 +70,35 @@ class _AppTextFieldState extends State<AppTextField> {
           maxLines: widget.obscureText ? 1 : widget.maxLines,
           enabled: widget.enabled,
           style: const TextStyle(
-            fontSize: 15,
+            fontSize: 14.5,
             color: AppColors.textPrimary,
+            height: 1.4,
           ),
+          cursorColor: AppColors.ink,
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: const TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-            ),
             prefixIcon: widget.prefixIcon != null
-                ? Icon(widget.prefixIcon, color: AppColors.textSecondary, size: 20)
+                ? Padding(
+                    padding: const EdgeInsets.only(left: 14, right: 10),
+                    child: Icon(
+                      widget.prefixIcon,
+                      color: AppColors.textTertiary,
+                      size: 18,
+                    ),
+                  )
                 : null,
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 0,
+              minHeight: 0,
+            ),
             suffixIcon: widget.obscureText
                 ? IconButton(
                     icon: Icon(
-                      _isObscured ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                      color: AppColors.textSecondary,
-                      size: 20,
+                      _isObscured
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                      color: AppColors.textTertiary,
+                      size: 18,
                     ),
                     onPressed: () {
                       setState(() {
@@ -98,37 +107,9 @@ class _AppTextFieldState extends State<AppTextField> {
                     },
                   )
                 : widget.suffixIcon,
-            filled: true,
-            fillColor: AppColors.surface,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.border),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.error, width: 1.5),
-            ),
-            disabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.border.withValues(alpha: 0.5)),
-            ),
           ),
         ),
       ],
     );
   }
 }
-
