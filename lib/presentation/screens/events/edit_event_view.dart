@@ -5,9 +5,9 @@ import 'package:eventpilot/presentation/widgets/app_button.dart';
 import 'package:eventpilot/presentation/widgets/app_text_field.dart';
 
 class EditEventView extends StatefulWidget {
-  final Map<String, dynamic> eventData;
+  final Map<String, dynamic>? eventData;
 
-  const EditEventView({super.key, required this.eventData});
+  const EditEventView({super.key, this.eventData});
 
   @override
   State<EditEventView> createState() => _EditEventViewState();
@@ -36,19 +36,22 @@ class _EditEventViewState extends State<EditEventView> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.eventData['title'] ?? '');
-    _locationController = TextEditingController(text: widget.eventData['location'] ?? '');
+    // Utilise les arguments GetX si disponibles, sinon données mockées
+    final args = Get.arguments as Map<String, dynamic>?;
+    final data = widget.eventData ?? args ?? {};
+    _titleController = TextEditingController(text: data['title'] ?? 'Mariage Rita & Marc');
+    _locationController = TextEditingController(text: data['location'] ?? 'Hôtel du Lac, Cotonou');
     _budgetController = TextEditingController(
-      text: (widget.eventData['budgetInitial'] ?? '2 500 000 FCFA').toString().replaceAll(' FCFA', '').replaceAll(' ', ''),
+      text: (data['budgetInitial'] ?? '2500000').toString().replaceAll(' FCFA', '').replaceAll(' ', ''),
     );
     _feeController = TextEditingController(
-      text: (widget.eventData['fee'] ?? '15 000 FCFA').toString().replaceAll(' FCFA', '').replaceAll(' ', ''),
+      text: (data['fee'] ?? '15000').toString().replaceAll(' FCFA', '').replaceAll(' ', ''),
     );
     _descriptionController = TextEditingController(
-      text: widget.eventData['description'] ?? 'Cérémonie officielle et réception conviviale avec famille et amis.',
+      text: data['description'] ?? 'Cérémonie officielle et réception conviviale avec famille et amis.',
     );
-    _eventType = widget.eventData['type'] ?? 'Mariage';
-    _isPaid = widget.eventData['isPaid'] ?? true;
+    _eventType = data['type'] ?? 'Mariage';
+    _isPaid = data['isPaid'] ?? true;
   }
 
   @override

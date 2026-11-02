@@ -10,13 +10,33 @@ import 'package:eventpilot/presentation/screens/participants/participants_list_v
 import 'package:eventpilot/presentation/screens/public/public_event_view.dart';
 
 class EventDetailsView extends StatefulWidget {
-  final Map<String, dynamic> eventData;
+  final Map<String, dynamic>? eventData;
 
-  const EventDetailsView({super.key, required this.eventData});
+  const EventDetailsView({super.key, this.eventData});
 
   @override
   State<EventDetailsView> createState() => _EventDetailsViewState();
 }
+
+// Données de démonstration
+const _kDefaultEvent = {
+  'id': '1',
+  'title': 'Mariage Rita & Marc',
+  'type': 'Mariage',
+  'date': 'Sam. 14 déc. 2026',
+  'time': '15h00',
+  'location': 'Hôtel du Lac, Cotonou',
+  'description': 'Une célébration magnifique réunissant famille et amis.',
+  'progress': 0.72,
+  'budgetInitial': '2 500 000 FCFA',
+  'budgetRestant': '700 000 FCFA',
+  'tasksTotal': 12,
+  'tasksDone': 8,
+  'participants': 64,
+  'isPaid': true,
+  'fee': '15 000 FCFA',
+  'isPublished': true,
+};
 
 class _EventDetailsViewState extends State<EventDetailsView> {
   late bool _isPublished;
@@ -26,7 +46,11 @@ class _EventDetailsViewState extends State<EventDetailsView> {
   @override
   void initState() {
     super.initState();
-    _event = Map<String, dynamic>.from(widget.eventData);
+    // Utilise les arguments GetX si disponibles, sinon les données mockées
+    final args = Get.arguments as Map<String, dynamic>?;
+    _event = Map<String, dynamic>.from(
+      widget.eventData ?? args ?? _kDefaultEvent,
+    );
     _isPublished = _event['isPublished'] ?? true;
   }
 

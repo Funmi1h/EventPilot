@@ -4,19 +4,19 @@ import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
 
 class RegistrationSuccessView extends StatelessWidget {
-  final String participantName;
-  final String participantEmail;
-  final String eventTitle;
-  final String ticketCode;
+  final String? participantName;
+  final String? participantEmail;
+  final String? eventTitle;
+  final String? ticketCode;
   final bool isPaid;
   final String? amountPaid;
 
   const RegistrationSuccessView({
     super.key,
-    required this.participantName,
-    required this.participantEmail,
-    required this.eventTitle,
-    required this.ticketCode,
+    this.participantName,
+    this.participantEmail,
+    this.eventTitle,
+    this.ticketCode,
     this.isPaid = false,
     this.amountPaid,
   });
@@ -122,7 +122,7 @@ class RegistrationSuccessView extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              ticketCode,
+                              ticketCode ?? 'EP-DEMO-001',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -141,7 +141,7 @@ class RegistrationSuccessView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            eventTitle,
+                            eventTitle ?? 'Mariage Rita & Marc',
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -157,9 +157,9 @@ class RegistrationSuccessView extends StatelessWidget {
                             ),
                           ),
                           const Divider(height: 28),
-                          _buildTicketInfo('Participant', participantName),
+                          _buildTicketInfo('Participant', participantName ?? 'Invité'),
                           const SizedBox(height: 8),
-                          _buildTicketInfo('E-mail', participantEmail),
+                          _buildTicketInfo('E-mail', participantEmail ?? '—'),
                           const SizedBox(height: 8),
                           _buildTicketInfo(
                             'Statut',

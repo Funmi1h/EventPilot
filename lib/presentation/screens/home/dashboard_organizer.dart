@@ -1,7 +1,35 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:eventpilot/core/theme/app_colors.dart';
+import 'package:eventpilot/core/routes/app_routes.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  int _currentNavIndex = 0;
+
+  void _onBottomNavTapped(int index) {
+    setState(() => _currentNavIndex = index);
+    switch (index) {
+      case 0:
+        // Déjà sur aperçu / dashboard
+        break;
+      case 1:
+        Get.toNamed(AppRoutes.TASKS);
+        break;
+      case 2:
+        Get.toNamed(AppRoutes.EXPENSES);
+        break;
+      case 3:
+        Get.toNamed(AppRoutes.PARTICIPANTS);
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,232 +41,310 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // En-tête : Titre et cloche de notification
+              // ── En-tête : Titre & Actions (Profil + Notifs) ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Tableau de bord',
-                        style: TextStyle(fontFamily: 'Inter', color: Colors.grey, fontSize: 12),
+                      Row(
+                        children: [
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: const BoxDecoration(
+                              color: AppColors.success,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'Tableau de bord organisateur',
+                            style: TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 2),
-                      Text(
+                      const SizedBox(height: 2),
+                      const Text(
                         'Mariage Rita & Marc',
-                        style: TextStyle(fontFamily: 'Inter', color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.notifications_none, color: Colors.black87, size: 22),
-                      onPressed: () {},
-                    ),
+                  Row(
+                    children: [
+                      // Bouton Liste des événements
+                      GestureDetector(
+                        onTap: () => Get.toNamed(AppRoutes.EVENTS),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: const Icon(Icons.event_note_rounded, color: AppColors.textPrimary, size: 20),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Bouton Profil
+                      GestureDetector(
+                        onTap: () => Get.toNamed(AppRoutes.PROFILE),
+                        child: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: AppColors.primarySoft,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.primary, width: 1.5),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'MK',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.primaryDark,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
+
               const SizedBox(height: 12),
 
-              // Badges (J-53, Date, Page publiée)
+              // ── Badges rapides (J-53, Date, Page publiée) ──
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE5B846),
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('J-53', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'J-53',
+                      style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Text('Sam. 14 déc. 2026', style: TextStyle(fontFamily: 'Inter', color: Colors.black87, fontSize: 11, fontWeight: FontWeight.w500)),
+                    child: const Text(
+                      'Sam. 14 déc. 2026',
+                      style: TextStyle(color: Colors.black87, fontSize: 11, fontWeight: FontWeight.w600),
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFDCFCE7),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Text('Page publiée', style: TextStyle(fontFamily: 'Inter', color: Color(0xFF16A34A), fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Carte Synthèse du budget (Jaune)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE5B846),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Synthèse du budget · restant', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 12)),
-                    const SizedBox(height: 4),
-                    const Text('700 000 FCFA', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: 0.72,
-                        backgroundColor: Colors.white.withOpacity(0.3),
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.black),
-                        minHeight: 6,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Budget initial', style: TextStyle(fontFamily: 'Inter', color: Colors.white70, fontSize: 10)),
-                            Text('2 500 000', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Total dépensé', style: TextStyle(fontFamily: 'Inter', color: Colors.white70, fontSize: 10)),
-                            Text('1 800 000', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('Utilisé', style: TextStyle(fontFamily: 'Inter', color: Colors.white70, fontSize: 10)),
-                            Text('72 %', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Carte Montant total collecté (Vert clair)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFDCFCE7),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
+                  GestureDetector(
+                    onTap: () => Get.toNamed(AppRoutes.PUBLIC_EVENT),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF16A34A),
+                        color: const Color(0xFFDCFCE7),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.credit_card, color: Colors.white, size: 24),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.open_in_new_rounded, size: 12, color: Color(0xFF16A34A)),
+                          SizedBox(width: 4),
+                          Text(
+                            'Page publiée',
+                            style: TextStyle(color: Color(0xFF16A34A), fontSize: 11, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(width: 14),
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Montant total collecté', style: TextStyle(fontFamily: 'Inter', color: Color(0xFF16A34A), fontSize: 12, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 2),
-                        Text('960 000 FCFA', style: TextStyle(fontFamily: 'Inter', color: Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
-                        SizedBox(height: 2),
-                        Text('64 paiements réussis · 6 en attente', style: TextStyle(fontFamily: 'Inter', color: Colors.grey, fontSize: 11)),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Section Alertes
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Alertes', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold)),
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Text('3', style: TextStyle(fontFamily: 'Inter', color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+
+              const SizedBox(height: 16),
+
+              // ── Carte Synthèse du budget (Couleur primaire Figma #E5B846) ──
+              GestureDetector(
+                onTap: () => Get.toNamed(AppRoutes.EXPENSES),
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.35),
+                        blurRadius: 12,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Synthèse du budget · restant',
+                            style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text(
+                              'Gérer >',
+                              style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        '700 000 FCFA',
+                        style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 14),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: 0.72,
+                          backgroundColor: Colors.white.withValues(alpha: 0.3),
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.black87),
+                          minHeight: 6,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Initial: 2 500 000 FCFA', style: TextStyle(color: Colors.white70, fontSize: 11)),
+                          Text('Dépensé: 1 800 000 FCFA (72%)', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              // ── Carte Montant collecté (Paiements) ──
+              GestureDetector(
+                onTap: () => Get.toNamed(AppRoutes.PAYMENTS),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Montant total collecté', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                          const SizedBox(height: 4),
+                          const Text(
+                            '960 000 FCFA',
+                            style: TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 2),
+                          Text('64 paiements réussis · 6 en attente', style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFDCFCE7),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text('91% payé', style: TextStyle(color: Color(0xFF16A34A), fontSize: 11, fontWeight: FontWeight.bold)),
+                            SizedBox(width: 4),
+                            Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Color(0xFF16A34A)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // ── Alertes & Notifications du cahier de charges ──
               _buildAlertCard(
                 icon: Icons.warning_amber_rounded,
-                iconColor: Colors.red,
-                bgColor: const Color(0xFFFFECEE),
-                title: 'Tâche en retard',
-                subtitle: 'Confirmer le traiteur – échéance dépassée',
+                iconColor: const Color(0xFFD97706),
+                bgColor: const Color(0xFFFEF3C7),
+                title: 'Alerte budget · 72% consommé',
+                subtitle: 'Le solde restant passe sous la barre de sécurité recommandée.',
               ),
               const SizedBox(height: 8),
               _buildAlertCard(
-                icon: Icons.access_time,
-                iconColor: Colors.orange,
-                bgColor: const Color(0xFFFFF7E6),
-                title: 'Échéance proche',
-                subtitle: 'Décoration florale – le 05 nov.',
+                icon: Icons.timer_outlined,
+                iconColor: const Color(0xFFDC2626),
+                bgColor: const Color(0xFFFEE2E2),
+                title: '2 tâches en retard',
+                subtitle: 'Contacter le traiteur, Valider la playlist DJ.',
               ),
-              const SizedBox(height: 8),
-              _buildAlertCard(
-                icon: Icons.account_balance_wallet_outlined,
-                iconColor: Colors.amber,
-                bgColor: const Color(0xFFFFFBE6),
-                title: 'Budget restant faible',
-                subtitle: 'Il reste 28 % du budget (700 000 FCFA)',
-              ),
+
               const SizedBox(height: 20),
 
-              // Suivi des tâches
+              // ── Section Tâches avec Stats ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Suivi des tâches', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text('Suivi des tâches', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   TextButton(
-                    onPressed: () {},
-                    child: const Text('Voir tout', style: TextStyle(fontFamily: 'Inter', color: Color(0xFFE5B846))),
+                    onPressed: () => Get.toNamed(AppRoutes.TASKS),
+                    child: const Text('Voir tout >', style: TextStyle(color: AppColors.primaryDark, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Expanded(child: _buildTaskStatCard('3', 'Prioritaires', Colors.indigo)),
+                  Expanded(child: _buildTaskStatCard('2', 'En retard', const Color(0xFFDC2626))),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildTaskStatCard('1', 'En retard', Colors.red)),
+                  Expanded(child: _buildTaskStatCard('4', 'En cours', AppColors.primaryDark)),
                   const SizedBox(width: 8),
-                  Expanded(child: _buildTaskStatCard('8', 'Terminées', Colors.green)),
+                  Expanded(child: _buildTaskStatCard('6', 'Terminées', const Color(0xFF16A34A))),
                 ],
               ),
+
               const SizedBox(height: 20),
 
-              // Derniers paiements
+              // ── Aperçu des derniers paiements ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Derniers paiements', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text('Derniers paiements reçus', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   TextButton(
-                    onPressed: () {},
-                    child: const Text('Voir tous', style: TextStyle(fontFamily: 'Inter', color: Color(0xFFE5B846))),
+                    onPressed: () => Get.toNamed(AppRoutes.PAYMENTS),
+                    child: const Text('Tous >', style: TextStyle(color: AppColors.primaryDark, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -251,24 +357,25 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildPaymentTile('AD', 'Aurore DOSSOU', 'Aujourd\'hui · 10h24', '15 000 F'),
-                    const Divider(height: 1),
-                    _buildPaymentTile('FH', 'Fabrice HOUNKPÈ', 'Hier · 18h02', '15 000 F'),
-                    const Divider(height: 1),
-                    _buildPaymentTile('NK', 'Nadège KPOSSOU', '20 oct. · 09h15', '15 000 F'),
+                    _buildPaymentTile('AD', 'Aurore DOSSOU', 'Aujourd\'hui · 14h20', '15 000 FCFA'),
+                    const Divider(height: 1, indent: 60),
+                    _buildPaymentTile('GA', 'Gildas AGOSSOU', 'Hier · 18h45', '15 000 FCFA'),
+                    const Divider(height: 1, indent: 60),
+                    _buildPaymentTile('NT', 'Noélie TOHOUE', '01 nov. · 09h10', '15 000 FCFA'),
                   ],
                 ),
               ),
+
               const SizedBox(height: 20),
 
-              // Dépenses récentes
+              // ── Aperçu des dépenses récentes ──
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Dépenses récentes', style: TextStyle(fontFamily: 'Inter', fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text('Dernières dépenses', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   TextButton(
-                    onPressed: () {},
-                    child: const Text('Historique', style: TextStyle(fontFamily: 'Inter', color: Color(0xFFE5B846))),
+                    onPressed: () => Get.toNamed(AppRoutes.EXPENSES),
+                    child: const Text('Historique >', style: TextStyle(color: AppColors.primaryDark, fontSize: 12, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -281,35 +388,38 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _buildExpenseTile(Icons.music_note, 'Sonorisation DJ Max', 'Animation · 21 oct.', '-150 000'),
-                    const Divider(height: 1),
-                    _buildExpenseTile(Icons.description_outlined, 'Faire-part imprimés', 'Impression · 22 oct.', '-100 000'),
+                    _buildExpenseTile(Icons.music_note_outlined, 'Acompte Orchestre live', 'Animation · 28 oct.', '-350 000 FCFA'),
+                    const Divider(height: 1, indent: 60),
+                    _buildExpenseTile(Icons.local_printshop_outlined, 'Faire-part & Menus', 'Impression · 24 oct.', '-85 000 FCFA'),
+                    const Divider(height: 1, indent: 60),
+                    _buildExpenseTile(Icons.restaurant_outlined, 'Acompte Vin d\'honneur', 'Traiteur · 20 oct.', '-600 000 FCFA'),
                   ],
                 ),
               ),
+
               const SizedBox(height: 24),
             ],
           ),
         ),
       ),
-      // Barre de navigation inférieure
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border(top: BorderSide(color: Colors.grey.shade200)),
         ),
         child: BottomNavigationBar(
-          currentIndex: 0,
-          selectedItemColor: const Color(0xFFE5B846),
+          currentIndex: _currentNavIndex,
+          onTap: _onBottomNavTapped,
+          selectedItemColor: AppColors.primaryDark,
           unselectedItemColor: Colors.grey,
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           elevation: 0,
           items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Aperçu'),
-            BottomNavigationBarItem(icon: Icon(Icons.checklist), label: 'Tâches'),
-            BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Dépenses'),
-            BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Participants'),
+            BottomNavigationBarItem(icon: Icon(Icons.home_outlined), activeIcon: Icon(Icons.home_rounded), label: 'Aperçu'),
+            BottomNavigationBarItem(icon: Icon(Icons.checklist_rounded), label: 'Tâches'),
+            BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), activeIcon: Icon(Icons.account_balance_wallet_rounded), label: 'Dépenses'),
+            BottomNavigationBarItem(icon: Icon(Icons.people_outline_rounded), activeIcon: Icon(Icons.people_rounded), label: 'Participants'),
           ],
         ),
       ),
@@ -331,9 +441,9 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(fontFamily: 'Inter', color: iconColor, fontSize: 13, fontWeight: FontWeight.bold)),
+                Text(title, style: TextStyle(color: iconColor, fontSize: 13, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: const TextStyle(fontFamily: 'Inter', color: Colors.black87, fontSize: 12)),
+                Text(subtitle, style: const TextStyle(color: Colors.black87, fontSize: 12)),
               ],
             ),
           ),
@@ -344,7 +454,7 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildTaskStatCard(String count, String label, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -353,9 +463,9 @@ class DashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(count, style: TextStyle(fontFamily: 'Inter', color: color, fontSize: 22, fontWeight: FontWeight.bold)),
+          Text(count, style: TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontFamily: 'Inter', color: Colors.grey, fontSize: 12)),
+          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
         ],
       ),
     );
@@ -368,23 +478,23 @@ class DashboardScreen extends StatelessWidget {
         children: [
           CircleAvatar(
             backgroundColor: const Color(0xFFEEF2FF),
-            child: Text(initials, style: const TextStyle(fontFamily: 'Inter', color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(initials, style: const TextStyle(color: Colors.indigo, fontWeight: FontWeight.bold, fontSize: 12)),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 2),
-                Text(date, style: const TextStyle(fontFamily: 'Inter', color: Colors.grey, fontSize: 11)),
+                Text(date, style: const TextStyle(color: Colors.grey, fontSize: 11)),
               ],
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(amount, style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 14)),
+              Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -392,7 +502,7 @@ class DashboardScreen extends StatelessWidget {
                   color: const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text('Payé', style: TextStyle(fontFamily: 'Inter', color: Color(0xFF16A34A), fontSize: 10, fontWeight: FontWeight.bold)),
+                child: const Text('Payé', style: TextStyle(color: Color(0xFF16A34A), fontSize: 10, fontWeight: FontWeight.bold)),
               ),
             ],
           ),
@@ -419,13 +529,13 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 14)),
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                 const SizedBox(height: 2),
-                Text(categoryDate, style: const TextStyle(fontFamily: 'Inter', color: Colors.grey, fontSize: 11)),
+                Text(categoryDate, style: const TextStyle(color: Colors.grey, fontSize: 11)),
               ],
             ),
           ),
-          Text(amount, style: const TextStyle(fontFamily: 'Inter', fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red)),
+          Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red)),
         ],
       ),
     );

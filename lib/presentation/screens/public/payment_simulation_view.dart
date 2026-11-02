@@ -5,19 +5,19 @@ import 'package:eventpilot/presentation/widgets/app_button.dart';
 import 'package:eventpilot/presentation/screens/public/registration_success_view.dart';
 
 class PaymentSimulationView extends StatefulWidget {
-  final String participantName;
-  final String participantEmail;
-  final String participantPhone;
-  final String amount;
-  final String eventTitle;
+  final String? participantName;
+  final String? participantEmail;
+  final String? participantPhone;
+  final String? amount;
+  final String? eventTitle;
 
   const PaymentSimulationView({
     super.key,
-    required this.participantName,
-    required this.participantEmail,
-    required this.participantPhone,
-    required this.amount,
-    required this.eventTitle,
+    this.participantName,
+    this.participantEmail,
+    this.participantPhone,
+    this.amount,
+    this.eventTitle,
   });
 
   @override
@@ -59,8 +59,16 @@ class _PaymentSimulationViewState extends State<PaymentSimulationView> {
   @override
   void initState() {
     super.initState();
-    _phoneOrCardController = TextEditingController(text: widget.participantPhone);
+    // Récupère les arguments GetX si les champs sont null
+    final args = Get.arguments as Map<String, dynamic>?;
+    final phone = widget.participantPhone ?? args?['participantPhone'] ?? '';
+    _phoneOrCardController = TextEditingController(text: phone);
   }
+
+  String get _name => widget.participantName ?? (Get.arguments as Map<String, dynamic>?)?['participantName'] ?? 'Invité';
+  String get _email => widget.participantEmail ?? (Get.arguments as Map<String, dynamic>?)?['participantEmail'] ?? '';
+  String get _amount => widget.amount ?? (Get.arguments as Map<String, dynamic>?)?['amount'] ?? '15 000 FCFA';
+  String get _eventTitle => widget.eventTitle ?? (Get.arguments as Map<String, dynamic>?)?['eventTitle'] ?? 'Mariage Rita & Marc';
 
   @override
   void dispose() {
@@ -77,12 +85,12 @@ class _PaymentSimulationViewState extends State<PaymentSimulationView> {
     setState(() => _isProcessing = false);
 
     Get.off(() => RegistrationSuccessView(
-          participantName: widget.participantName,
-          participantEmail: widget.participantEmail,
-          eventTitle: widget.eventTitle,
+          participantName: _name,
+          participantEmail: _email,
+          eventTitle: _eventTitle,
           ticketCode: 'EP-PAY-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
           isPaid: true,
-          amountPaid: widget.amount,
+          amountPaid: _amount,
         ));
   }
 
@@ -152,7 +160,7 @@ class _PaymentSimulationViewState extends State<PaymentSimulationView> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    widget.amount,
+                    _amount,
                     style: const TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -160,9 +168,9 @@ class _PaymentSimulationViewState extends State<PaymentSimulationView> {
                     ),
                   ),
                   const Divider(height: 24),
-                  _buildSummaryRow('Événement', widget.eventTitle),
-                  _buildSummaryRow('Participant', widget.participantName),
-                  _buildSummaryRow('E-mail', widget.participantEmail),
+                  _buildSummaryRow('Événement', _eventTitle),
+                  _buildSummaryRow('Participant', _name),
+                  _buildSummaryRow('E-mail', _email),
                 ],
               ),
             ),
@@ -192,7 +200,7 @@ class _PaymentSimulationViewState extends State<PaymentSimulationView> {
                         if (method['id'] == 'Carte bancaire') {
                           _phoneOrCardController.text = '4000 1234 5678 9010';
                         } else {
-                          _phoneOrCardController.text = widget.participantPhone;
+                          _phoneOrCardController.text = '';  // téléphone mobile money
                         }
                       });
                     },
@@ -299,7 +307,7 @@ class _PaymentSimulationViewState extends State<PaymentSimulationView> {
 
             // ── Bouton Valider ──
             AppButton(
-              label: 'Valider le paiement simulé (${widget.amount})',
+              label: 'Valider le paiement simulé ($_amount)',
               isLoading: _isProcessing,
               icon: Icons.lock_outline_rounded,
               onPressed: _processSimulatedPayment,
