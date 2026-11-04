@@ -1,30 +1,59 @@
 import 'package:get/get.dart';
 import 'package:eventpilot/data/models/expense_model.dart';
 import 'package:eventpilot/data/services/expense_service.dart';
+import 'package:eventpilot/data/services/event_service.dart';
+import 'package:eventpilot/presentation/screens/events/controller/event_controller.dart';
 
 class ExpenseController extends GetxController {
   final ExpenseService _expenseService = ExpenseService();
 
+  //l'identifiant de l'evenement courant et son budget
   var currentEventId = ''.obs;
-  //le budget prévisionnel
-  var initialBudget = 0.0.obs; 
+  var initialBudget = 0.0.obs;
 
+  //la liste observable des depenses
   var expenses = <ExpenseModel>[].obs;
   var isLoading = false.obs;
 
   @override
   void onInit() {
     super.onInit();
-    if (Get.arguments != null && Get.arguments is Map) {
+    initExpenses();
+  }
+
+  //initialiser les depenses de l'evenement
+  Future<void> initExpenses([String? eventId, double? budget]) async {
+    if (eventId != null && eventId.isNotEmpty) {
+      currentEventId.value = eventId;
+      if (budget != null) initialBudget.value = budget;
+    } else if (Get.arguments != null && Get.arguments is Map) {
       currentEventId.value = Get.arguments['eventId'] ?? '';
       initialBudget.value = (Get.arguments['budget'] as num?)?.toDouble() ?? 0.0;
-      if (currentEventId.value.isNotEmpty) {
-        fetchExpenses(currentEventId.value);
+    }
+
+    if (currentEventId.value.isEmpty) {
+      if (Get.isRegistered<EventController>() &&
+          Get.find<EventController>().selectedEvent.value != null) {
+        final ev = Get.find<EventController>().selectedEvent.value!;
+        currentEventId.value = ev.id ?? '';
+        initialBudget.value = ev.budget;
+      } else {
+        try {
+          final events = await EventService().getEvents();
+          if (events.isNotEmpty) {
+            currentEventId.value = events.first.id ?? '';
+            initialBudget.value = events.first.budget;
+          }
+        } catch (_) {}
       }
+    }
+
+    if (currentEventId.value.isNotEmpty) {
+      await fetchExpenses(currentEventId.value);
     }
   }
 
-  // 1. LIRE les dépenses
+  //lire les depenses depuis supabase
   Future<void> fetchExpenses(String eventId) async {
     currentEventId.value = eventId;
     try {
@@ -32,42 +61,56 @@ class ExpenseController extends GetxController {
       final fetched = await _expenseService.getExpensesByEvent(eventId);
       expenses.assignAll(fetched);
     } catch (e) {
-      Get.snackbar('Erreur', 'Impossible de charger les dépenses : $e');
+      Get.snackbar(
+        'Erreur',
+        'Impossible de charger les dépenses : $e',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
     } finally {
       isLoading.value = false;
     }
   }
 
-  // --- RÈGLES MÉTIERS CALCULS DU BUDGET ---
-
-  // 3.4.5 : Total des dépenses cumulées
+  //calcul du total des depenses
   double get totalExpenses {
     return expenses.fold(0.0, (sum, item) => sum + item.amount);
   }
 
-  // 3.4.6 : Budget restant = Budget initial - Total dépenses
+  //calcul du budget restant
   double get remainingBudget {
     return initialBudget.value - totalExpenses;
   }
 
-  // 3.4.7 : Alertes budgétaires
-  // Dépassement de budget (dépenses > budget initial)
-  bool get isBudgetExceeded => totalExpenses > initialBudget.value && initialBudget.value > 0;
-
-  // Budget faible (moins de 15% restant)
-  bool get isBudgetLow {
-    if (initialBudget.value <= 0) return false;
-    return remainingBudget > 0 && (remainingBudget / initialBudget.value) <= 0.15;
+  //proportion du budget consomme
+  double get usedRatio {
+    if (initialBudget.value <= 0) return 0.0;
+    return (totalExpenses / initialBudget.value).clamp(0.0, 1.0);
   }
 
-  // 2. AJOUTER une dépense
+  //alerte si budget depasse
+  bool get isBudgetExceeded =>
+      totalExpenses > initialBudget.value && initialBudget.value > 0;
+
+  //alerte si budget faible
+  bool get isBudgetLow {
+    if (initialBudget.value <= 0) return false;
+    return remainingBudget > 0 && (remainingBudget / initialBudget.value) <= 0.20;
+  }
+
+  //ajouter une nouvelle depense dans supabase
   Future<bool> addExpense({
     required String label,
     required double amount,
     required DateTime date,
   }) async {
     if (label.trim().isEmpty || amount <= 0) {
-      Get.snackbar('Erreur', 'Veuillez saisir un libellé et un montant valide.');
+      Get.snackbar(
+        'Erreur',
+        'Veuillez saisir un libellé et un montant valide.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
       return false;
     }
 
@@ -81,47 +124,95 @@ class ExpenseController extends GetxController {
       );
 
       final created = await _expenseService.createExpense(newExpense);
-      expenses.insert(0, created); // Ajoute en haut de liste
+      expenses.insert(0, created); //on ajoute en haut de la liste
 
-      Get.snackbar('Succès', 'Dépense enregistrée.');
       return true;
     } catch (e) {
-      Get.snackbar('Erreur', 'Échec de l\'ajout : $e');
+      Get.snackbar(
+        'Erreur',
+        'Échec de l\'ajout : $e',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
       return false;
     } finally {
       isLoading.value = false;
     }
   }
 
-  // 3. MODIFIER une dépense
-  Future<void> updateExpense(ExpenseModel expense, String newLabel, double newAmount) async {
-    if (expense.id == null) return;
+  //mettre a jour une depense dans supabase
+  Future<bool> updateExpenseDetails({
+    required String expenseId,
+    required String label,
+    required double amount,
+    required DateTime date,
+  }) async {
+    if (label.trim().isEmpty || amount <= 0) {
+      Get.snackbar(
+        'Erreur',
+        'Veuillez saisir un libellé et un montant valide.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
+      return false;
+    }
 
     try {
-      await _expenseService.updateExpense(expense.id!, {
-        'label': newLabel,
-        'amount': newAmount,
-      });
+      isLoading.value = true;
+      final updateData = {
+        'label': label.trim(),
+        'amount': amount,
+        'expense_date': date.toIso8601String().split('T').first,
+      };
 
-      // Modification directe en mémoire
-      expense.label = newLabel;
-      expense.amount = newAmount;
-      expenses.refresh();
+      await _expenseService.updateExpense(expenseId, updateData);
 
-      Get.snackbar('Succès', 'Dépense mise à jour.');
+      final index = expenses.indexWhere((e) => e.id == expenseId);
+      if (index != -1) {
+        expenses[index].label = label.trim();
+        expenses[index].amount = amount;
+        expenses[index].expenseDate = date;
+        expenses.refresh();
+      }
+
+      Get.snackbar(
+        'Succès',
+        'Dépense modifiée avec succès.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
+      return true;
     } catch (e) {
-      Get.snackbar('Erreur', 'Impossible de modifier la dépense : $e');
+      Get.snackbar(
+        'Erreur',
+        'Impossible de modifier la dépense : $e',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
+      return false;
+    } finally {
+      isLoading.value = false;
     }
   }
 
-  // 4. SUPPRIMER une dépense
+  //supprimer une depense dans supabase
   Future<void> deleteExpense(String expenseId) async {
     try {
       await _expenseService.deleteExpense(expenseId);
-      expenses.removeWhere((item) => item.id == expenseId);
-      Get.snackbar('Succès', 'Dépense supprimée.');
+      expenses.removeWhere((e) => e.id == expenseId);
+      Get.snackbar(
+        'Succès',
+        'Dépense supprimée.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
     } catch (e) {
-      Get.snackbar('Erreur', 'Impossible de supprimer la dépense : $e');
+      Get.snackbar(
+        'Erreur',
+        'Impossible de supprimer : $e',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
     }
   }
 }

@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:eventpilot/core/supabase_client.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/core/routes/app_routes.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
 import 'package:eventpilot/presentation/widgets/app_icon_box.dart';
 import 'package:eventpilot/presentation/widgets/app_tag.dart';
-import 'package:eventpilot/presentation/screens/public/public_event_view.dart';
+import 'package:eventpilot/presentation/screens/events/controller/event_controller.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -15,24 +17,50 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-  String _fullName = 'Marc KOUASSI';
-  final String _email = 'organisateur@eventpilot.bj';
-  String _phone = '+229 97 00 11 22';
+  String _fullName = '';
+  String _email = '';
+  String _phone = '';
   final String _role = 'Organisateur';
 
-  String get _initials {
-    if (_fullName.isEmpty) return 'EP';
-    return _fullName
-        .split(' ')
-        .where((e) => e.isNotEmpty)
-        .map((e) => e[0])
-        .take(2)
-        .join();
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
   }
 
+  //charger les vraies informations de l'utilisateur connecte
+  void _loadUserProfile() {
+    final user = supabase.auth.currentUser;
+    if (user != null) {
+      final meta = user.userMetadata ?? {};
+      setState(() {
+        _email = user.email ?? '';
+        _fullName = meta['full_name']?.toString() ??
+            (_email.contains('@') ? _email.split('@').first : 'Organisateur');
+        _phone = meta['phone']?.toString() ?? user.phone ?? 'Non renseigné';
+      });
+    } else {
+      setState(() {
+        _fullName = 'Organisateur';
+        _email = 'Non connecté';
+        _phone = 'Non renseigné';
+      });
+    }
+  }
+
+  //calculer les initiales du nom
+  String get _initials {
+    if (_fullName.trim().isEmpty) return 'EP';
+    final parts = _fullName.trim().split(' ').where((e) => e.isNotEmpty).toList();
+    if (parts.isEmpty) return 'EP';
+    if (parts.length == 1) return parts.first.substring(0, 1).toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  //ouvrir le formulaire de modification du profil
   void _showEditProfileDialog() {
     final nameCtrl = TextEditingController(text: _fullName);
-    final phoneCtrl = TextEditingController(text: _phone);
+    final phoneCtrl = TextEditingController(text: _phone == 'Non renseigné' ? '' : _phone);
 
     showModalBottomSheet(
       context: context,
@@ -108,13 +136,41 @@ class _ProfileViewState extends State<ProfileView> {
             const SizedBox(height: 26),
             AppButton(
               label: 'Enregistrer les modifications',
-              onPressed: () {
-                setState(() {
-                  _fullName = nameCtrl.text.trim();
-                  _phone = phoneCtrl.text.trim();
-                });
-                Navigator.pop(ctx);
-                Get.snackbar('Profil mis à jour', 'Vos informations ont été enregistrées.');
+              onPressed: () async {
+                final newName = nameCtrl.text.trim();
+                final newPhone = phoneCtrl.text.trim();
+
+                try {
+                  //mettre a jour les meta-donnees dans supabase
+                  await supabase.auth.updateUser(
+                    UserAttributes(
+                      data: {
+                        'full_name': newName,
+                        'phone': newPhone,
+                      },
+                    ),
+                  );
+
+                  setState(() {
+                    _fullName = newName;
+                    _phone = newPhone.isNotEmpty ? newPhone : 'Non renseigné';
+                  });
+
+                  Navigator.pop(ctx);
+                  Get.snackbar(
+                    'Profil mis à jour',
+                    'Vos informations ont été enregistrées.',
+                    snackPosition: SnackPosition.TOP,
+                    duration: const Duration(seconds: 5),
+                  );
+                } catch (e) {
+                  Get.snackbar(
+                    'Erreur',
+                    'Impossible de mettre à jour le profil : $e',
+                    snackPosition: SnackPosition.TOP,
+                    duration: const Duration(seconds: 5),
+                  );
+                }
               },
             ),
           ],
@@ -123,6 +179,7 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
+  //confirmer la deconnexion et fermer la session supabase
   void _confirmLogout() {
     Get.defaultDialog(
       title: 'Déconnexion',
@@ -142,16 +199,28 @@ class _ProfileViewState extends State<ProfileView> {
       confirmTextColor: Colors.white,
       buttonColor: AppColors.ink,
       cancelTextColor: AppColors.textSecondary,
-      onConfirm: () {
+      onConfirm: () async {
         Get.back();
-        Get.offAllNamed(AppRoutes.HOME);
-        Get.snackbar('Déconnecté', 'Votre session a été fermée.');
+        //fermer reellement la session supabase
+        await supabase.auth.signOut();
+        Get.offAllNamed(AppRoutes.login);
+        Get.snackbar(
+          'Déconnecté',
+          'Votre session a été fermée.',
+          snackPosition: SnackPosition.TOP,
+          duration: const Duration(seconds: 5),
+        );
       },
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    //compter les evenements reels depuis le controller des evenements
+    final eventController = Get.isRegistered<EventController>()
+        ? Get.find<EventController>()
+        : Get.put(EventController());
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -169,19 +238,11 @@ class _ProfileViewState extends State<ProfileView> {
             children: [
               _buildProfileCard(),
               const SizedBox(height: 16),
-              _buildStats(),
+              Obx(() => _buildStats(eventController.events.length)),
               const SizedBox(height: 16),
               _buildMenu(),
               const SizedBox(height: 16),
               _buildLogout(),
-              const SizedBox(height: 26),
-              const Text(
-                'EventPilot v1.0.0 · IFRI UAC GL3',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: AppColors.textTertiary,
-                ),
-              ),
             ],
           ),
         ),
@@ -276,7 +337,7 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildStats() {
+  Widget _buildStats(int eventsCount) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
@@ -286,11 +347,11 @@ class _ProfileViewState extends State<ProfileView> {
       ),
       child: Row(
         children: [
-          _buildStat('3', 'Cérémonies'),
+          _buildStat('$eventsCount', 'Événements'),
           _buildStatDivider(),
-          _buildStat('142', 'Invités'),
+          _buildStat('Organisateur', 'Rôle'),
           _buildStatDivider(),
-          _buildStat('92 %', 'Succès'),
+          _buildStat('Actif', 'Statut'),
         ],
       ),
     );
@@ -303,7 +364,7 @@ class _ProfileViewState extends State<ProfileView> {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 19,
+              fontSize: 18,
               fontWeight: FontWeight.w600,
               letterSpacing: -0.4,
               color: AppColors.textPrimary,
@@ -343,32 +404,22 @@ class _ProfileViewState extends State<ProfileView> {
           ),
           const Divider(height: 1, indent: 60),
           _buildListTile(
-            icon: Icons.open_in_new_rounded,
-            title: 'Page publique invité',
-            subtitle: 'Tester l\'expérience participant',
-            onTap: () => Get.to(() => const PublicEventView()),
+            icon: Icons.celebration_outlined,
+            title: 'Mes événements',
+            subtitle: 'Voir la liste de mes événements',
+            onTap: () => Get.toNamed(AppRoutes.events),
           ),
           const Divider(height: 1, indent: 60),
           _buildListTile(
-            icon: Icons.notifications_none_rounded,
-            title: 'Notifications',
-            subtitle: 'Rappels d\'échéance, alertes budget',
-            onTap: () {
-              Get.snackbar(
-                'Notifications activées',
-                'Vous recevrez les rappels et alertes budgétaires.',
-              );
-            },
-          ),
-          const Divider(height: 1, indent: 60),
-          _buildListTile(
-            icon: Icons.lock_outline_rounded,
-            title: 'Sécurité',
-            subtitle: 'Mot de passe et accès',
+            icon: Icons.shield_outlined,
+            title: 'Sécurité du compte',
+            subtitle: 'Authentification gérée par Supabase',
             onTap: () {
               Get.snackbar(
                 'Sécurité',
-                'Votre compte est sécurisé par Supabase Auth.',
+                'Votre session est chiffrée avec Supabase Auth.',
+                snackPosition: SnackPosition.TOP,
+                duration: const Duration(seconds: 5),
               );
             },
           ),
@@ -377,61 +428,66 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildLogout() {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: _buildListTile(
-        icon: Icons.logout_rounded,
-        iconColor: AppColors.error,
-        title: 'Déconnexion',
-        subtitle: 'Fermer votre session',
-        onTap: _confirmLogout,
-      ),
-    );
-  }
-
   Widget _buildListTile({
     required IconData icon,
-    Color? iconColor,
     required String title,
     required String subtitle,
     required VoidCallback onTap,
   }) {
     return ListTile(
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      leading: AppIconBox(
-        icon: icon,
-        size: 38,
-        iconSize: 18,
-        color: iconColor ?? AppColors.textSecondary,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+      leading: AppIconBox(icon: icon),
       title: Text(
         title,
         style: const TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
+          fontSize: 13.5,
+          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
       ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 2),
-        child: Text(
-          subtitle,
-          style: const TextStyle(
-            fontSize: 11.5,
-            color: AppColors.textTertiary,
-          ),
+      subtitle: Text(
+        subtitle,
+        style: const TextStyle(
+          fontSize: 11.5,
+          color: AppColors.textTertiary,
         ),
       ),
       trailing: const Icon(
         Icons.chevron_right_rounded,
-        color: AppColors.textTertiary,
         size: 19,
+        color: AppColors.textTertiary,
+      ),
+    );
+  }
+
+  Widget _buildLogout() {
+    return InkWell(
+      onTap: _confirmLogout,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.logout_rounded, size: 18, color: AppColors.error),
+            SizedBox(width: 8),
+            Text(
+              'Déconnexion',
+              style: TextStyle(
+                fontSize: 13.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.error,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,45 +1,35 @@
 class AppRoutes {
   AppRoutes._();
 
-  // ── Accueil & Auth ──
-  static const String HOME = '/home';
-  static const String LOGIN = '/login';
-  static const String REGISTER = '/register';
-  static const String FORGOT_PASSWORD = '/forgot-password';
+  static const String home = '/home';
+  static const String login = '/login';
+  static const String register = '/register';
+  static const String verifyEmail = '/verify-email';
+  static const String forgotPassword = '/forgot-password';
+  static const String profile = '/profile';
 
-  // ── Profil ──
-  static const String PROFILE = '/profile';
+  static const String dashboardOrganizer = '/dashboard/organizer';
 
-  // ── Dashboard organisateur ──
-  static const String DASHBOARD_ORGANIZER = '/dashboard/organizer';
+  static const String events = '/events';
+  static const String event = '/events/details';
+  static const String createEvent = '/events/create';
+  static const String editEvent = '/events/edit';
 
-  // ── Événements ──
-  static const String EVENTS = '/events';
-  static const String EVENT_DETAILS = '/events/details';
-  static const String CREATE_EVENT = '/events/create';
-  static const String EDIT_EVENT = '/events/edit';
+  static const String tasks = '/tasks';
+  static  String task(String id ) => '/tasks/$id';
+  static const String createTask = '/tasks/create';
+  static String editTask(String id) => "/tasks/edit/$id";
 
-  // ── Tâches ──
-  static const String TASKS = '/tasks';
-  static const String CREATE_TASK = '/tasks/create';
+  static const String expenses = '/expenses';
+  static const String createExpense = '/expenses/create';
+  static String editExpense(String id) => 'expenses/edit/$id';
 
-  // ── Dépenses ──
-  static const String EXPENSES = '/expenses';
-  static const String CREATE_EXPENSE = '/expenses/create';
+  static const String participants = '/participants';
+  static const String payments = '/payments';
 
-  // ── Participants ──
-  static const String PARTICIPANTS = '/participants';
+  static const String publicEvent = '/public/event';
+  static const String paymentSimulation = '/public/payment';
+  static const String registrationSuccess = '/public/success';
 
-  // ── Paiements ──
-  static const String PAYMENTS = '/payments';
-
-  // ── Page publique invité ──
-  static const String PUBLIC_EVENT = '/public/event';
-  static const String PAYMENT_SIMULATION = '/public/payment';
-  static const String REGISTRATION_SUCCESS = '/public/success';
-
-  // ── Compatibilité avec anciens paramètres ──
-  static const String EVENT = '/event/:eventId';
-  static const String TASK = '/task/:taskId';
-  static const String EVENT_TASK = '/events/:eventId/tasks/:taskId';
+  static const String eventTask = '/events/:eventId/tasks/:taskId';
 }

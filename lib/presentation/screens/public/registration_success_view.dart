@@ -1,10 +1,13 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
+import 'package:eventpilot/core/utils/download_helper.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
 import 'package:eventpilot/presentation/widgets/app_tag.dart';
 
-class RegistrationSuccessView extends StatelessWidget {
+class RegistrationSuccessView extends StatefulWidget {
   final String? participantName;
   final String? participantEmail;
   final String? eventTitle;
@@ -21,6 +24,101 @@ class RegistrationSuccessView extends StatelessWidget {
     this.isPaid = false,
     this.amountPaid,
   });
+
+  @override
+  State<RegistrationSuccessView> createState() => _RegistrationSuccessViewState();
+}
+
+class _RegistrationSuccessViewState extends State<RegistrationSuccessView> {
+  final GlobalKey _passKey = GlobalKey();
+  final GlobalKey _qrKey = GlobalKey();
+  bool _isDownloading = false;
+
+  //telecharger le pass complet avec le qr code
+  Future<void> _downloadPass() async {
+    try {
+      setState(() => _isDownloading = true);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final boundary =
+          _passKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        throw Exception('Impossible de capturer le pass');
+      }
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        throw Exception('Erreur de conversion de l\'image');
+      }
+
+      final pngBytes = byteData.buffer.asUint8List();
+      final code = widget.ticketCode ?? 'pass-invitation';
+      downloadFile(pngBytes, '$code.png');
+
+      Get.snackbar(
+        'Pass téléchargé',
+        'Le pass avec QR code a été enregistré.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 4),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Erreur',
+        'Impossible de télécharger le pass : $e',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 4),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isDownloading = false);
+      }
+    }
+  }
+
+  //telecharger uniquement le qr code
+  Future<void> _downloadQrOnly() async {
+    try {
+      setState(() => _isDownloading = true);
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      final boundary =
+          _qrKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        throw Exception('Impossible de capturer le QR code');
+      }
+
+      final image = await boundary.toImage(pixelRatio: 3.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        throw Exception('Erreur de conversion de l\'image');
+      }
+
+      final pngBytes = byteData.buffer.asUint8List();
+      final code = widget.ticketCode ?? 'qrcode';
+      downloadFile(pngBytes, 'qrcode-$code.png');
+
+      Get.snackbar(
+        'QR Code téléchargé',
+        'L\'image du QR code a été téléchargée avec succès.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 4),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Erreur',
+        'Impossible de télécharger le QR code : $e',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 4),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isDownloading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +157,9 @@ class RegistrationSuccessView extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                isPaid
-                    ? 'Votre paiement de ${amountPaid ?? "15 000 FCFA"} a été validé.'
-                    : 'Votre place est bien enregistrée pour la cérémonie.',
+                widget.isPaid
+                    ? 'Votre paiement de ${widget.amountPaid ?? "15 000 FCFA"} a été validé.'
+                    : 'Votre place est bien enregistrée pour l\'événement.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontSize: 13,
@@ -70,17 +168,19 @@ class RegistrationSuccessView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 28),
-              _buildPass(),
+
+              //carte du pass a capturer
+              RepaintBoundary(
+                key: _passKey,
+                child: _buildPass(),
+              ),
               const SizedBox(height: 26),
+
               AppButton(
                 label: 'Enregistrer le pass',
                 icon: Icons.download_outlined,
-                onPressed: () {
-                  Get.snackbar(
-                    'Pass sauvegardé',
-                    'Votre pass a été ajouté à vos documents.',
-                  );
-                },
+                isLoading: _isDownloading,
+                onPressed: _downloadPass,
               ),
               const SizedBox(height: 12),
               AppButton(
@@ -134,7 +234,7 @@ class RegistrationSuccessView extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    ticketCode ?? 'EP-DEMO-001',
+                    widget.ticketCode ?? 'EP-DEMO-001',
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w500,
@@ -152,7 +252,7 @@ class RegistrationSuccessView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  eventTitle ?? 'Mariage Rita & Marc',
+                  widget.eventTitle ?? 'Mariage Rita & Marc',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
@@ -172,9 +272,9 @@ class RegistrationSuccessView extends StatelessWidget {
                 const SizedBox(height: 18),
                 const Divider(height: 1),
                 const SizedBox(height: 16),
-                _buildTicketInfo('Participant', participantName ?? 'Invité'),
+                _buildTicketInfo('Participant', widget.participantName ?? 'Invité'),
                 const SizedBox(height: 10),
-                _buildTicketInfo('E-mail', participantEmail ?? '—'),
+                _buildTicketInfo('E-mail', widget.participantEmail ?? '—'),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -188,9 +288,9 @@ class RegistrationSuccessView extends StatelessWidget {
                       ),
                     ),
                     AppTag(
-                      isPaid ? 'Payé & confirmé' : 'Entrée libre',
+                      widget.isPaid ? 'Payé & confirmé' : 'Entrée libre',
                       dotColor:
-                          isPaid ? AppColors.success : AppColors.accent,
+                          widget.isPaid ? AppColors.success : AppColors.accent,
                     ),
                   ],
                 ),
@@ -198,17 +298,20 @@ class RegistrationSuccessView extends StatelessWidget {
                 Center(
                   child: Column(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: AppColors.surfaceMuted,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: AppColors.border),
-                        ),
-                        child: const Icon(
-                          Icons.qr_code_2_rounded,
-                          size: 96,
-                          color: AppColors.ink,
+                      RepaintBoundary(
+                        key: _qrKey,
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceMuted,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppColors.border),
+                          ),
+                          child: const Icon(
+                            Icons.qr_code_2_rounded,
+                            size: 96,
+                            color: AppColors.ink,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -218,6 +321,15 @@ class RegistrationSuccessView extends StatelessWidget {
                           fontSize: 11,
                           color: AppColors.textSecondary,
                         ),
+                      ),
+                      const SizedBox(height: 6),
+                      TextButton.icon(
+                        icon: const Icon(Icons.download_rounded, size: 16),
+                        label: const Text(
+                          'Télécharger le QR code seul',
+                          style: TextStyle(fontSize: 12, color: AppColors.ink),
+                        ),
+                        onPressed: _downloadQrOnly,
                       ),
                     ],
                   ),

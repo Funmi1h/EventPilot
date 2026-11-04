@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
-import 'package:eventpilot/presentation/widgets/app_card.dart';
-import 'package:eventpilot/presentation/widgets/app_tag.dart';
+import 'package:eventpilot/core/routes/app_routes.dart';
+import 'package:eventpilot/data/models/event_model.dart';
+import 'package:eventpilot/presentation/screens/events/controller/event_controller.dart';
 import 'package:eventpilot/presentation/screens/events/create_event_view.dart';
 import 'package:eventpilot/presentation/screens/events/event_details_view.dart';
+import 'package:eventpilot/presentation/widgets/app_card.dart';
+import 'package:eventpilot/presentation/widgets/app_tag.dart';
+import 'package:eventpilot/presentation/widgets/app_button.dart';
 
 class EventsListView extends StatefulWidget {
   const EventsListView({super.key});
@@ -14,90 +18,52 @@ class EventsListView extends StatefulWidget {
 }
 
 class _EventsListViewState extends State<EventsListView> {
+  //on recupere ou on instancie le controller des evenements
+  final EventController _controller = Get.put(EventController());
   String _selectedFilter = 'Toutes';
   final List<String> _filters = ['Toutes', 'À venir', 'Terminées'];
 
-  final List<Map<String, dynamic>> _events = [
-    {
-      'id': '1',
-      'title': 'Mariage Rita & Marc',
-      'type': 'Mariage',
-      'date': 'Sam. 14 déc. 2026',
-      'time': '15h00',
-      'location': 'Hôtel du Lac, Cotonou',
-      'progress': 0.72,
-      'progressLabel': 'Préparatifs avancés',
-      'budgetInitial': '2 500 000 FCFA',
-      'budgetRestant': '700 000 FCFA',
-      'isPaid': true,
-      'fee': '15 000 FCFA',
-      'isPublished': true,
-      'status': 'À venir',
-      'tasksCompleted': 8,
-      'tasksTotal': 14,
-      'participantsCount': 64,
-      'collected': '960 000 FCFA',
-    },
-    {
-      'id': '2',
-      'title': 'Baptême Lucas',
-      'type': 'Baptême',
-      'date': 'Dim. 25 janv. 2027',
-      'time': '11h30',
-      'location': 'Paroisse Saint-Michel, Cotonou',
-      'progress': 0.35,
-      'progressLabel': 'Planification initiale',
-      'budgetInitial': '1 200 000 FCFA',
-      'budgetRestant': '950 000 FCFA',
-      'isPaid': false,
-      'fee': 'Gratuit',
-      'isPublished': true,
-      'status': 'À venir',
-      'tasksCompleted': 3,
-      'tasksTotal': 9,
-      'participantsCount': 42,
-      'collected': '0 FCFA',
-    },
-    {
-      'id': '3',
-      'title': 'Gala Promotion IFRI GL3',
-      'type': 'Soirée',
-      'date': 'Ven. 30 oct. 2026',
-      'time': '20h00',
-      'location': 'Palais des Congrès, Cotonou',
-      'progress': 1.0,
-      'progressLabel': 'Événement clôturé',
-      'budgetInitial': '3 000 000 FCFA',
-      'budgetRestant': '120 000 FCFA',
-      'isPaid': true,
-      'fee': '10 000 FCFA',
-      'isPublished': false,
-      'status': 'Terminées',
-      'tasksCompleted': 18,
-      'tasksTotal': 18,
-      'participantsCount': 120,
-      'collected': '1 200 000 FCFA',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    //on force le chargement des evenements a l'ouverture de l'ecran
+    _controller.fetchEvents();
+  }
 
+  //ouvrir l'ecran de creation puis recharger la liste
   void _openCreate() {
-    Get.to(() => const CreateEventView());
+    Get.to(() => const CreateEventView())?.then((_) {
+      _controller.fetchEvents();
+    });
+  }
+
+  //formater la date en francais
+  String _formatDate(DateTime date) {
+    const months = [
+      '', 'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+      'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'
+    ];
+    return '${date.day} ${months[date.month]} ${date.year}';
+  }
+
+  //separer les montants par des espaces
+  String _formatBudget(double amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]} ',
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredEvents = _selectedFilter == 'Toutes'
-        ? _events
-        : _events.where((e) => e['status'] == _selectedFilter).toList();
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Cérémonies'),
+        title: const Text('Événements'),
         actions: [
           IconButton(
             icon: const Icon(Icons.add, size: 22),
-            tooltip: 'Nouvelle cérémonie',
+            tooltip: 'Nouvel événement',
             onPressed: _openCreate,
           ),
           const SizedBox(width: 8),
@@ -107,6 +73,7 @@ class _EventsListViewState extends State<EventsListView> {
         top: false,
         child: Column(
           children: [
+            //barre de filtres horizontaux
             SizedBox(
               width: double.infinity,
               child: SingleChildScrollView(
@@ -119,66 +86,94 @@ class _EventsListViewState extends State<EventsListView> {
                       child: AppFilterChip(
                         label: filter,
                         selected: _selectedFilter == filter,
-                        onTap: () =>
-                            setState(() => _selectedFilter = filter),
+                        onTap: () => setState(() => _selectedFilter = filter),
                       ),
                     );
                   }).toList(),
                 ),
               ),
             ),
+            //la liste reactive des evenements
             Expanded(
-              child: filteredEvents.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(22, 4, 22, 28),
-                      itemCount: filteredEvents.length,
-                      itemBuilder: (context, index) {
-                        final event = filteredEvents[index];
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: AppCard(
-                            title: event['title'],
-                            subtitle:
-                                '${event['date']} · ${event['time']}\n${event['location']}',
-                            progress: event['progress'],
-                            progressLabel:
-                                '${event['tasksCompleted']}/${event['tasksTotal']} tâches faites',
-                            badges: [
-                              AppTag(
-                                event['type'],
-                                dotColor: AppColors.accent,
-                              ),
-                              AppTag(
-                                event['isPublished']
-                                    ? 'Page publiée'
-                                    : 'Brouillon',
-                                dotColor: event['isPublished']
-                                    ? AppColors.success
-                                    : AppColors.warning,
-                              ),
-                              AppTag(
-                                event['isPaid']
-                                    ? event['fee']
-                                    : 'Entrée libre',
-                                dotColor: event['isPaid']
-                                    ? AppColors.info
-                                    : AppColors.success,
-                              ),
-                            ],
-                            trailing: const Icon(
-                              Icons.arrow_forward_rounded,
-                              size: 17,
-                              color: AppColors.textTertiary,
+              child: Obx(() {
+                if (_controller.isLoading.value) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppColors.ink),
+                  );
+                }
+
+                final now = DateTime.now();
+                final today = DateTime(now.year, now.month, now.day);
+
+                //filtrer les evenements selon le choix
+                final filteredEvents = _controller.events.where((e) {
+                  if (_selectedFilter == 'À venir') {
+                    return !e.date.isBefore(today);
+                  }
+                  if (_selectedFilter == 'Terminées') {
+                    return e.date.isBefore(today);
+                  }
+                  return true;
+                }).toList();
+
+                //afficher l'ecran vide si aucun evenement
+                if (filteredEvents.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                //glisser vers le bas pour rafraichir
+                return RefreshIndicator(
+                  color: AppColors.ink,
+                  onRefresh: () => _controller.fetchEvents(),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(22, 4, 22, 28),
+                    itemCount: filteredEvents.length,
+                    itemBuilder: (context, index) {
+                      final event = filteredEvents[index];
+                      final isUpcoming = !event.date.isBefore(today);
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: AppCard(
+                          title: event.name,
+                          subtitle:
+                              '${_formatDate(event.date)} · ${event.time}\n${event.location.isNotEmpty ? event.location : 'Lieu non défini'}',
+                          badges: [
+                            AppTag(
+                              event.type,
+                              dotColor: AppColors.accent,
                             ),
-                            onTap: () {
-                              Get.to(() =>
-                                  EventDetailsView(eventData: event));
-                            },
+                            AppTag(
+                              isUpcoming ? 'À venir' : 'Terminée',
+                              dotColor: isUpcoming
+                                  ? AppColors.success
+                                  : AppColors.textTertiary,
+                            ),
+                            AppTag(
+                              event.isPaid
+                                  ? '${_formatBudget(event.ticketPrice)} FCFA'
+                                  : 'Entrée libre',
+                              dotColor: event.isPaid
+                                  ? AppColors.info
+                                  : AppColors.success,
+                            ),
+                          ],
+                          trailing: const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 17,
+                            color: AppColors.textTertiary,
                           ),
-                        );
-                      },
-                    ),
+                          onTap: () {
+                            _controller.selectEvent(event);
+                            //ouvrir les details de l'evenement
+                            Get.to(() => EventDetailsView(event: event));
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                );
+              }),
             ),
           ],
         ),
@@ -186,6 +181,7 @@ class _EventsListViewState extends State<EventsListView> {
     );
   }
 
+  //vue affichee quand la liste est vide
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
@@ -208,7 +204,7 @@ class _EventsListViewState extends State<EventsListView> {
             ),
             const SizedBox(height: 16),
             const Text(
-              'Aucune cérémonie',
+              'Aucun événement',
               style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
@@ -217,11 +213,17 @@ class _EventsListViewState extends State<EventsListView> {
             ),
             const SizedBox(height: 6),
             const Text(
-              'Vos cérémonies apparaîtront ici.',
+              'Créez votre premier événement pour commencer la planification.',
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12.5,
                 color: AppColors.textSecondary,
               ),
+            ),
+            const SizedBox(height: 20),
+            AppButton(
+              label: 'Créer un événement',
+              onPressed: _openCreate,
             ),
           ],
         ),

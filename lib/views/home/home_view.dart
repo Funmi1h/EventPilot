@@ -107,7 +107,7 @@ class HomeView extends StatelessWidget {
 
                 // ── Titre principal ──
                 const Text(
-                  'Organisez vos\ncérémonies sans stress',
+                  'Organisez vos\névénements sans stress',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,

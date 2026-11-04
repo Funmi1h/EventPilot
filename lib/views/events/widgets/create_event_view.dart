@@ -18,7 +18,7 @@ class _CreateEventViewState extends State<CreateEventView> {
   final _nomController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _lieuController = TextEditingController();
-  String? _typeCeremonie = 'Mariage';
+  String? _typeEvenement = 'Mariage';
   DateTime? _selectedDate;
   String _selectedHeure = '15:00';
 
@@ -30,7 +30,7 @@ class _CreateEventViewState extends State<CreateEventView> {
   final _formKey1 = GlobalKey<FormState>();
   final _formKey2 = GlobalKey<FormState>();
 
-  static const List<String> _typesCeremonie = [
+  static const List<String> _typesEvenement = [
     'Mariage',
     'Baptême',
     'Anniversaire',
@@ -207,9 +207,9 @@ class _CreateEventViewState extends State<CreateEventView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Nom de la cérémonie
+          //nom de l'evenement
           AppTextField(
-            label: 'Nom de la cérémonie',
+            label: 'Nom de l\'événement',
             hintText: 'Ex : Mariage Rita & Marc',
             controller: _nomController,
             validator: (v) => (v == null || v.trim().isEmpty)
@@ -218,7 +218,7 @@ class _CreateEventViewState extends State<CreateEventView> {
           ),
           const SizedBox(height: 20),
 
-          // Type de cérémonie
+          //type d'evenement
           _buildDropdownField(),
           const SizedBox(height: 20),
 
@@ -265,7 +265,7 @@ class _CreateEventViewState extends State<CreateEventView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Type de cérémonie',
+          'Type d\'événement',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -274,10 +274,10 @@ class _CreateEventViewState extends State<CreateEventView> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: _typeCeremonie,
-          onChanged: (v) => setState(() => _typeCeremonie = v),
+          value: _typeEvenement,
+          onChanged: (v) => setState(() => _typeEvenement = v),
           validator: (v) => v == null ? 'Veuillez choisir un type' : null,
-          items: _typesCeremonie
+          items: _typesEvenement
               .map((t) => DropdownMenuItem(value: t, child: Text(t)))
               .toList(),
           style: const TextStyle(fontSize: 15, color: AppColors.textPrimary),
@@ -541,7 +541,7 @@ class _CreateEventViewState extends State<CreateEventView> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Un lien public unique sera généré pour partager la cérémonie et recevoir les inscriptions.',
+              'Un lien public unique sera généré pour partager l\'événement et recevoir les inscriptions.',
               style: TextStyle(
                 fontSize: 13,
                 color: AppColors.success.withValues(alpha: 0.9),
@@ -588,7 +588,7 @@ class _CreateEventViewState extends State<CreateEventView> {
           ),
           const SizedBox(height: 12),
           _buildRecapRow(
-            'Cérémonie',
+            'Événement',
             _nomController.text.trim().isEmpty
                 ? '—'
                 : _nomController.text.trim(),

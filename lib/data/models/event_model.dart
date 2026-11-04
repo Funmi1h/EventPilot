@@ -1,19 +1,17 @@
 class EventModel {
-
-  //les propriétés du model Event
-  final String? id;
-  final String userId;
-  final String name;
-  final String type;
-  final String? description;
-  final DateTime date;
-  final String time;
-  final String location;
-  final double budget;
-  final bool isPaid;
-  final double ticketPrice;
-  final String? publicLink;
-  final DateTime? createdAt;
+  String? id;
+  String userId;
+  String name;
+  String type;
+  String? description;
+  DateTime date;
+  String time;
+  String location;
+  double budget;
+  bool isPaid;
+  double ticketPrice;
+  String? publicLink;
+  DateTime? createdAt;
 
   EventModel({
     this.id,
@@ -23,7 +21,7 @@ class EventModel {
     this.description,
     required this.date,
     required this.time,
-    required this.location,
+    this.location = '',
     required this.budget,
     this.isPaid = false,
     this.ticketPrice = 0.0,
@@ -31,43 +29,77 @@ class EventModel {
     this.createdAt,
   });
 
-  //convertit un objet supabase (qui es en json ou map en objet eventmodel
-  //on va utiliser ca en particulier pour la lecture 
+  //convertir un map supabase en eventmodel de facon securisee
   factory EventModel.fromJson(Map<String, dynamic> json) {
+    //securiser la conversion du budget
+    final rawBudget = json['initial_budget'] ?? json['budget'];
+    double parsedBudget = 0.0;
+    if (rawBudget is num) {
+      parsedBudget = rawBudget.toDouble();
+    } else if (rawBudget != null) {
+      parsedBudget = double.tryParse(rawBudget.toString()) ?? 0.0;
+    }
+
+    //securiser la conversion du tarif de participation
+    final rawFee = json['participation_fee'] ?? json['ticket_price'];
+    double parsedFee = 0.0;
+    if (rawFee is num) {
+      parsedFee = rawFee.toDouble();
+    } else if (rawFee != null) {
+      parsedFee = double.tryParse(rawFee.toString()) ?? 0.0;
+    }
+
+    //securiser la conversion de la date
+    DateTime parsedDate = DateTime.now();
+    final rawDate = json['event_date'] ?? json['date'];
+    if (rawDate != null) {
+      parsedDate = DateTime.tryParse(rawDate.toString()) ?? DateTime.now();
+    }
+
     return EventModel(
-      id: json['id'],
-      userId: json['user_id'],
-      name: json['name'],
-      type: json['type'],
-      description: json['description'],
-      date: DateTime.parse(json['date']),
-      time: json['time'],
-      location: json['location'],
-      budget: (json['budget'] as num?)?.toDouble() ?? 0.0,
-      isPaid: json['is_paid'] ?? false,
-      ticketPrice: (json['ticket_price'] as num?)?.toDouble() ?? 0.0,
-      publicLink: json['public_link'],
+      id: json['id']?.toString(),
+      userId: json['organizer_id']?.toString() ?? json['user_id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      type: json['event_type']?.toString() ?? json['type']?.toString() ?? 'Événement',
+      description: json['description']?.toString(),
+      date: parsedDate,
+      time: json['event_time']?.toString() ?? json['time']?.toString() ?? '10:00',
+      location: json['location']?.toString() ?? '',
+      budget: parsedBudget,
+      isPaid: json['is_paid'] == true,
+      ticketPrice: parsedFee,
+      publicLink: (json['id'] != null && json['id'].toString().isNotEmpty)
+          ? 'http://localhost:8080/#/public/event?id=${json['id']}'
+          : (json['public_url']?.toString() ?? json['public_link']?.toString() ?? 'http://localhost:8080/#/public/event'),
       createdAt: json['created_at'] != null
-          ? DateTime.parse(json['created_at'])
+          ? DateTime.tryParse(json['created_at'].toString())
           : null,
     );
   }
 
-  // ca c'est pour onvertit un objet EventModel en Map/JSON pour l'envoyer à Supabase
-  //on va utiliser ca pour l'insertion et le update
+  //lien public formate pour consulter et partager l'evenement
+  String get computedPublicUrl {
+    if (id != null && id!.isNotEmpty) {
+      return 'http://localhost:8080/#/public/event?id=$id';
+    }
+    return publicLink ?? 'http://localhost:8080/#/public/event';
+  }
+
+  //convertit un objet eventmodel en map pour supabase
   Map<String, dynamic> toJson() {
     return {
-      'user_id': userId,
+      'organizer_id': userId,
       'name': name,
-      'type': type,
+      'event_type': type,
       'description': description,
-      'date': date.toIso8601String().split('T').first, // Format YYYY-MM-DD
-      'time': time,
-      'location': location,
-      'budget': budget,
+      'event_date': date.toIso8601String().split('T').first,
+      'event_time': time,
+      'initial_budget': budget,
       'is_paid': isPaid,
-      'ticket_price': ticketPrice,
-      'public_link': publicLink,
+      'participation_fee': ticketPrice,
+      'public_url': (id != null && id!.isNotEmpty)
+          ? 'http://localhost:8080/#/public/event?id=$id'
+          : 'http://localhost:8080/#/public/event',
     };
   }
 }

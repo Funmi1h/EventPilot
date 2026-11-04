@@ -1,109 +1,97 @@
 import 'package:get/get.dart';
 import 'package:eventpilot/core/routes/app_routes.dart';
-
-// ── Auth ──
 import 'package:eventpilot/presentation/screens/authentification/views/login_view.dart';
 import 'package:eventpilot/presentation/screens/authentification/views/register_view.dart';
+import 'package:eventpilot/presentation/screens/authentification/views/verify_email_view.dart';
 import 'package:eventpilot/presentation/screens/authentification/views/forgot_password_view.dart';
-
-// ── Home & Dashboard ──
 import 'package:eventpilot/presentation/screens/home/home_view.dart';
 import 'package:eventpilot/presentation/screens/home/dashboard_organizer.dart';
-
-// ── Profil ──
 import 'package:eventpilot/presentation/screens/profile/profile_view.dart';
-
-// ── Événements ──
 import 'package:eventpilot/presentation/screens/events/events_list_view.dart';
 import 'package:eventpilot/presentation/screens/events/event_details_view.dart';
 import 'package:eventpilot/presentation/screens/events/create_event_view.dart';
 import 'package:eventpilot/presentation/screens/events/edit_event_view.dart';
-
-// ── Tâches ──
 import 'package:eventpilot/presentation/screens/tasks/task_list_view.dart';
 import 'package:eventpilot/presentation/screens/tasks/create_task_view.dart';
-import 'package:eventpilot/presentation/screens/tasks/controllers/task_list_controller.dart';
-import 'package:eventpilot/presentation/screens/tasks/controllers/create_task_controller.dart';
-
-// ── Dépenses ──
+import 'package:eventpilot/presentation/screens/tasks/controller/task_controller.dart';
+import 'package:eventpilot/presentation/screens/tasks/controller/create_task_controller.dart';
 import 'package:eventpilot/presentation/screens/expenses/expense_list_view.dart';
 import 'package:eventpilot/presentation/screens/expenses/create_expense_view.dart';
-
-// ── Participants ──
 import 'package:eventpilot/presentation/screens/participants/participants_list_view.dart';
-
-// ── Paiements ──
 import 'package:eventpilot/presentation/screens/payments/payments_list_view.dart';
-
-// ── Public / Invité ──
 import 'package:eventpilot/presentation/screens/public/public_event_view.dart';
 import 'package:eventpilot/presentation/screens/public/payment_simulation_view.dart';
 import 'package:eventpilot/presentation/screens/public/registration_success_view.dart';
-
 class AppPages {
   AppPages._();
 
   static final List<GetPage> pages = [
-    // ── Accueil ──
     GetPage(
-      name: AppRoutes.HOME,
+      name: '/',
+      page: () => const HomeView(),
+    ),
+    GetPage(
+      name: AppRoutes.home,
       page: () => const HomeView(),
     ),
 
-    // ── Auth ──
     GetPage(
-      name: AppRoutes.LOGIN,
+      name: AppRoutes.login,
       page: () => const LoginView(),
     ),
     GetPage(
-      name: AppRoutes.REGISTER,
+      name: AppRoutes.register,
       page: () => const RegisterView(),
     ),
     GetPage(
-      name: AppRoutes.FORGOT_PASSWORD,
+      name: AppRoutes.verifyEmail,
+      page: () => const VerifyEmailView(),
+    ),
+    GetPage(
+      name: AppRoutes.forgotPassword,
       page: () => const ForgotPasswordView(),
     ),
 
     // ── Dashboard ──
     GetPage(
-      name: AppRoutes.DASHBOARD_ORGANIZER,
+      name: AppRoutes.dashboardOrganizer,
       page: () => const DashboardScreen(),
     ),
 
     // ── Profil ──
     GetPage(
-      name: AppRoutes.PROFILE,
+      name: AppRoutes.profile,
       page: () => const ProfileView(),
     ),
 
     // ── Événements ──
     GetPage(
-      name: AppRoutes.EVENTS,
+      name: AppRoutes.events,
       page: () => const EventsListView(),
     ),
     GetPage(
-      name: AppRoutes.EVENT_DETAILS,
+      name: AppRoutes.event,
       page: () => const EventDetailsView(),
     ),
     GetPage(
-      name: AppRoutes.CREATE_EVENT,
+      name: AppRoutes.createEvent,
       page: () => const CreateEventView(),
     ),
     GetPage(
-      name: AppRoutes.EDIT_EVENT,
+      name: AppRoutes.editEvent,
       page: () => const EditEventView(),
     ),
 
     // ── Tâches ──
     GetPage(
-      name: AppRoutes.TASKS,
+      name: AppRoutes.tasks,
       page: () => const TaskListView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<TaskListController>(() => TaskListController());
       }),
     ),
     GetPage(
-      name: AppRoutes.CREATE_TASK,
+      name: AppRoutes.createTask,
       page: () => const CreateTaskView(),
       binding: BindingsBuilder(() {
         Get.lazyPut<CreateTaskController>(() => CreateTaskController());
@@ -112,38 +100,55 @@ class AppPages {
 
     // ── Dépenses ──
     GetPage(
-      name: AppRoutes.EXPENSES,
+      name: AppRoutes.expenses,
       page: () => const ExpenseListView(),
     ),
     GetPage(
-      name: AppRoutes.CREATE_EXPENSE,
+      name: AppRoutes.createExpense,
       page: () => const CreateExpenseView(),
     ),
 
     // ── Participants ──
     GetPage(
-      name: AppRoutes.PARTICIPANTS,
+      name: AppRoutes.participants,
       page: () => const ParticipantsListView(),
     ),
 
     // ── Paiements ──
     GetPage(
-      name: AppRoutes.PAYMENTS,
+      name: AppRoutes.payments,
       page: () => const PaymentsListView(),
     ),
 
     // ── Public / Invité ──
     GetPage(
-      name: AppRoutes.PUBLIC_EVENT,
-      page: () => const PublicEventView(),
+      name: AppRoutes.publicEvent,
+      page: () => PublicEventView(
+        eventData: (Get.arguments is Map<String, dynamic>)
+            ? (Get.arguments as Map<String, dynamic>)
+            : null,
+      ),
     ),
     GetPage(
-      name: AppRoutes.PAYMENT_SIMULATION,
-      page: () => const PaymentSimulationView(),
+      name: AppRoutes.paymentSimulation,
+      page: () => PaymentSimulationView(
+        participantName: Get.arguments?['participantName'] ?? 'Marc william',
+        participantEmail: Get.arguments?['participantEmail'] ?? 'marcwilliam@gmail.com',
+        participantPhone: Get.arguments?['participantPhone'] ?? '+229 01 97 45 23 18',
+        amount: Get.arguments?['amount'] ?? '15 000',
+        eventTitle: Get.arguments?['eventTitle'] ?? 'Mariage Rita & Marc',
+      ),
     ),
     GetPage(
-      name: AppRoutes.REGISTRATION_SUCCESS,
-      page: () => const RegistrationSuccessView(),
+      name: AppRoutes.registrationSuccess,
+      page: () => RegistrationSuccessView(
+        participantName: Get.arguments?['participantName'] ?? 'Marc william',
+        participantEmail: Get.arguments?['participantEmail'] ?? 'marcwilliam@gmail.com',
+        eventTitle: Get.arguments?['eventTitle'] ?? 'Mariage Rita & Marc',
+        ticketCode: Get.arguments?['ticketCode'] ?? 'EP-MARIAGE-8823',
+        isPaid: Get.arguments?['isPaid'] ?? true,
+        amountPaid: Get.arguments?['amountPaid'] ?? '15 000 FCFA',
+      ),
     ),
   ];
 }

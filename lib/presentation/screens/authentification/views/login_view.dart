@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
 import 'package:eventpilot/core/routes/app_routes.dart';
+import 'package:eventpilot/presentation/screens/authentification/controller/auth_controller.dart';
 import 'package:eventpilot/presentation/widgets/app_button.dart';
 import 'package:eventpilot/presentation/widgets/app_text_field.dart';
 
@@ -13,11 +14,10 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  final AuthController _authController = Get.put(AuthController());
   final _formKey = GlobalKey<FormState>();
-  final _emailController =
-      TextEditingController(text: 'organisateur@eventpilot.bj');
-  final _passwordController = TextEditingController(text: 'Password123!');
-  bool _isLoading = false;
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _rememberMe = true;
 
   @override
@@ -27,16 +27,12 @@ class _LoginViewState extends State<LoginView> {
     super.dispose();
   }
 
+  //appeler le controller pour la connexion dans supabase
   void _handleLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
-      await Future.delayed(const Duration(milliseconds: 600));
-      setState(() => _isLoading = false);
-
-      Get.offAllNamed(AppRoutes.DASHBOARD_ORGANIZER);
-      Get.snackbar(
-        'Connexion réussie',
-        'Bienvenue dans votre espace organisateur.',
+      await _authController.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
     }
   }
@@ -83,7 +79,7 @@ class _LoginViewState extends State<LoginView> {
                 ),
                 const SizedBox(height: 10),
                 const Text(
-                  'Retrouvez vos cérémonies, vos préparatifs et vos comptes.',
+                  'Retrouvez vos événements, vos préparatifs et vos comptes.',
                   style: TextStyle(
                     fontSize: 14,
                     height: 1.6,
@@ -117,8 +113,8 @@ class _LoginViewState extends State<LoginView> {
                     if (value == null || value.trim().isEmpty) {
                       return 'Veuillez saisir votre mot de passe';
                     }
-                    if (value.length < 6) {
-                      return 'Au moins 6 caractères';
+                    if (value.length < 8) {
+                      return 'Au moins 8 caractères';
                     }
                     return null;
                   },
@@ -160,7 +156,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     TextButton(
                       onPressed: () =>
-                          Get.toNamed(AppRoutes.FORGOT_PASSWORD),
+                          Get.toNamed(AppRoutes.forgotPassword),
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.zero,
                         minimumSize: Size.zero,
@@ -179,11 +175,11 @@ class _LoginViewState extends State<LoginView> {
                 ),
                 const SizedBox(height: 28),
 
-                AppButton(
+                Obx(() => AppButton(
                   label: 'Se connecter',
-                  isLoading: _isLoading,
+                  isLoading: _authController.isLoading.value,
                   onPressed: _handleLogin,
-                ),
+                )),
                 const SizedBox(height: 28),
 
                 Row(
@@ -198,7 +194,7 @@ class _LoginViewState extends State<LoginView> {
                     ),
                     const SizedBox(width: 5),
                     InkWell(
-                      onTap: () => Get.toNamed(AppRoutes.REGISTER),
+                      onTap: () => Get.toNamed(AppRoutes.register),
                       borderRadius: BorderRadius.circular(4),
                       child: const Padding(
                         padding: EdgeInsets.symmetric(vertical: 2),

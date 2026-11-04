@@ -34,8 +34,6 @@ class HomeView extends StatelessWidget {
                         const SizedBox(height: 40),
                         _buildActions(),
                         const Spacer(),
-                        const SizedBox(height: 56),
-                        _buildFooter(),
                       ],
                     ),
                   ),
@@ -84,7 +82,7 @@ class HomeView extends StatelessWidget {
             ),
             SizedBox(height: 1),
             Text(
-              'ORGANISATION DE CÉRÉMONIES',
+              'ORGANISATION D\'ÉVÉNEMENTS',
               style: TextStyle(
                 fontSize: 9,
                 fontWeight: FontWeight.w500,
@@ -141,81 +139,15 @@ class HomeView extends StatelessWidget {
       children: [
         AppButton(
           label: 'Créer un compte',
-          onPressed: () => Get.toNamed(AppRoutes.REGISTER),
+          onPressed: () => Get.toNamed(AppRoutes.register),
         ),
         const SizedBox(height: 10),
         AppButton(
           label: 'Se connecter',
           type: AppButtonType.outlined,
-          onPressed: () => Get.toNamed(AppRoutes.LOGIN),
+          onPressed: () => Get.toNamed(AppRoutes.login),
         ),
       ],
-    );
-  }
-
-  Widget _buildFooter() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(height: 1, color: AppColors.border),
-        const SizedBox(height: 16),
-        const Row(
-          children: [
-            Text(
-              'Tâches',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.textTertiary,
-                letterSpacing: 0.2,
-              ),
-            ),
-            _FooterDot(),
-            Text(
-              'Budget',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.textTertiary,
-                letterSpacing: 0.2,
-              ),
-            ),
-            _FooterDot(),
-            Text(
-              'Invités',
-              style: TextStyle(
-                fontSize: 11,
-                color: AppColors.textTertiary,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
-        const Text(
-          'IFRI · UAC — Génie logiciel 3',
-          style: TextStyle(
-            fontSize: 10.5,
-            letterSpacing: 0.2,
-            color: AppColors.textTertiary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FooterDot extends StatelessWidget {
-  const _FooterDot();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 3,
-      height: 3,
-      margin: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: const BoxDecoration(
-        color: AppColors.borderStrong,
-        shape: BoxShape.circle,
-      ),
     );
   }
 }

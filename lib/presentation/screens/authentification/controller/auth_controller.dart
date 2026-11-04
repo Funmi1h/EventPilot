@@ -17,10 +17,11 @@ class AuthController extends GetxController {
       Get.snackbar(
         'Champs vides', 
         'Veuillez renseigner tous les champs de connexion',
-        snackPosition: SnackPosition.BOTTOM,
-        );
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
 
-        return;
+      return;
     }
 
     try{
@@ -35,16 +36,24 @@ class AuthController extends GetxController {
       );
       if(response.user != null){
         //on redirige en meme temps vers le dashboard
-
         Get.offAllNamed(AppRoutes.dashboardOrganizer);
       }
 
 
     }on AuthException catch(error){
-      Get.snackbar('Erreur de connexion', error.message, snackPosition: SnackPosition.BOTTOM,);
+      Get.snackbar(
+        'Erreur de connexion',
+        error.message,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
 
     }catch(error){
-      Get.snackbar("Erreur de connexion", error.toString(), snackPosition: SnackPosition.BOTTOM
+      Get.snackbar(
+        "Erreur de connexion",
+        error.toString(),
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
       );
     }finally{
       isLoading.value= false;
@@ -58,20 +67,21 @@ class AuthController extends GetxController {
       Get.snackbar(
         'Champs vides',
         'Veuillez remplir tous les champs.',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
       );
       return;
     }
 
-    //on vérifie que le mot de passe contient au moins 8 caracteres dont au moins un chiffres au m
+    //on vérifie que le mot de passe contient au moins 8 caracteres dont au moins un chiffres au moins un caractere spécial, au moins une lettre majuscule
     final String passwordText = password;
-    final RegExp passwordValidator = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
+    final RegExp passwordValidator = RegExp(r'^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#^_-]).{8,}$');
 
     if (!passwordValidator.hasMatch(passwordText)) {
       Get.snackbar(
         'Mot de passe trop faible',
         'Le mot de passe doit contenir au moins 8 caractères, dont une majuscule, un chiffre et un caractère spécial (@\$!%*?&).',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition: SnackPosition.TOP,
         duration: const Duration(seconds: 5),
       );
       return;
@@ -87,22 +97,31 @@ class AuthController extends GetxController {
         password: password,
         data: {'full_name': fullName.trim()},
       );
-      if(response.user != null){
+      if (response.user != null) {
+        //redirection directe vers la page de connexion
+        Get.offAllNamed(AppRoutes.login);
         Get.snackbar(
-          'Inscription réussie',
-          'Vérifiez votre boîte mail pour confirmer votre adresse.',
-          snackPosition: SnackPosition.BOTTOM,
+          'Compte créé',
+          'Votre compte a été créé avec succès, vous pouvez maintenant vous connecter.',
+          snackPosition: SnackPosition.TOP,
           duration: const Duration(seconds: 5),
         );
-        Get.offAllNamed(AppRoutes.login);
-
       }
    
   } on AuthException catch(error){
-      Get.snackbar('Erreur d\'inscription', error.message, snackPosition: SnackPosition.BOTTOM,);
+      Get.snackbar(
+        'Erreur d\'inscription',
+        error.message,
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
 
     }catch(error){
-      Get.snackbar("Erreur d'inscription", error.toString(), snackPosition: SnackPosition.BOTTOM
+      Get.snackbar(
+        "Erreur d'inscription",
+        error.toString(),
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
       );
     } finally {
     isLoading.value = false;
@@ -115,7 +134,12 @@ Future<void> logout()async{
   Get.offAllNamed(AppRoutes.login);
 
   }catch(error){
-    Get.snackbar('Erreur', 'Impossible de se déconnecter', snackPosition:SnackPosition.BOTTOM,);
+    Get.snackbar(
+      'Erreur',
+      'Impossible de se déconnecter',
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 5),
+    );
   }
   
 }

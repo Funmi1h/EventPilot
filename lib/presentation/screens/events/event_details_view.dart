@@ -2,70 +2,64 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:eventpilot/core/theme/app_colors.dart';
+import 'package:eventpilot/core/routes/app_routes.dart';
+import 'package:eventpilot/data/models/event_model.dart';
+import 'package:eventpilot/presentation/screens/events/controller/event_controller.dart';
 import 'package:eventpilot/presentation/screens/events/edit_event_view.dart';
-import 'package:eventpilot/presentation/screens/home/dashboard_organizer.dart';
-import 'package:eventpilot/presentation/screens/tasks/task_list_view.dart';
-import 'package:eventpilot/presentation/screens/expenses/expense_list_view.dart';
-import 'package:eventpilot/presentation/screens/participants/participants_list_view.dart';
-import 'package:eventpilot/presentation/screens/public/public_event_view.dart';
 import 'package:eventpilot/presentation/widgets/app_icon_box.dart';
 import 'package:eventpilot/presentation/widgets/app_tag.dart';
 import 'package:eventpilot/presentation/widgets/section_header.dart';
 
 class EventDetailsView extends StatefulWidget {
+  final EventModel? event;
   final Map<String, dynamic>? eventData;
 
-  const EventDetailsView({super.key, this.eventData});
+  const EventDetailsView({super.key, this.event, this.eventData});
 
   @override
   State<EventDetailsView> createState() => _EventDetailsViewState();
 }
 
-const _kDefaultEvent = {
-  'id': '1',
-  'title': 'Mariage Rita & Marc',
-  'type': 'Mariage',
-  'date': 'Sam. 14 déc. 2026',
-  'time': '15h00',
-  'location': 'Hôtel du Lac, Cotonou',
-  'description': 'Une célébration réunissant famille et amis.',
-  'progress': 0.72,
-  'budgetInitial': '2 500 000 FCFA',
-  'budgetRestant': '700 000 FCFA',
-  'tasksTotal': 12,
-  'tasksDone': 8,
-  'participants': 64,
-  'isPaid': true,
-  'fee': '15 000 FCFA',
-  'isPublished': true,
-};
-
 class _EventDetailsViewState extends State<EventDetailsView> {
-  late bool _isPublished;
-  late Map<String, dynamic> _event;
-  final String _publicLink = 'https://eventpilot.app/e/m-rita-marc-2026';
+  //le controller pour manipuler l'evenement
+  final EventController _controller = Get.isRegistered<EventController>()
+      ? Get.find<EventController>()
+      : Get.put(EventController());
+
+  EventModel? _currentEvent;
+  final String _publicLink = 'https://eventpilot.app/events/public';
 
   @override
   void initState() {
     super.initState();
-    final args = Get.arguments as Map<String, dynamic>?;
-    _event = Map<String, dynamic>.from(
-      widget.eventData ?? args ?? _kDefaultEvent,
-    );
-    _isPublished = _event['isPublished'] ?? true;
+    //on initialise l'evenement passe en parametre ou depuis les arguments
+    if (widget.event != null) {
+      _currentEvent = widget.event;
+    } else if (Get.arguments is EventModel) {
+      _currentEvent = Get.arguments as EventModel;
+    } else if (_controller.selectedEvent.value != null) {
+      _currentEvent = _controller.selectedEvent.value;
+    } else if (_controller.events.isNotEmpty) {
+      _currentEvent = _controller.events.first;
+    }
   }
 
+  //copier le lien public dans le presse papier
   void _copyPublicLink() {
-    Clipboard.setData(ClipboardData(text: _publicLink));
+    final link = _currentEvent?.computedPublicUrl ?? 'http://localhost:8080/#/public/event';
+    Clipboard.setData(ClipboardData(text: link));
     Get.snackbar(
       'Lien copié',
       'Le lien public est dans votre presse-papiers.',
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 5),
     );
   }
 
+  //confirmer et supprimer l'evenement dans supabase
   void _confirmDelete() {
     Get.defaultDialog(
-      title: 'Supprimer la cérémonie ?',
+      title: 'Supprimer l\'événement ?',
       titleStyle: const TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w600,
@@ -83,16 +77,47 @@ class _EventDetailsViewState extends State<EventDetailsView> {
       confirmTextColor: Colors.white,
       buttonColor: AppColors.ink,
       cancelTextColor: AppColors.textSecondary,
-      onConfirm: () {
+      onConfirm: () async {
         Get.back();
-        Get.back();
-        Get.snackbar('Cérémonie supprimée', 'Les données ont été retirées.');
+        if (_currentEvent?.id != null) {
+          await _controller.removeEvent(_currentEvent!.id!);
+          Get.back(); //retourner a la liste
+        }
       },
+    );
+  }
+
+  //formater la date en francais
+  String _formatDate(DateTime date) {
+    const months = [
+      '', 'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+      'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'
+    ];
+    return '${date.day} ${months[date.month]} ${date.year}';
+  }
+
+  //separer les montants
+  String _formatAmount(double amount) {
+    return amount.toStringAsFixed(0).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]} ',
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_currentEvent == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(title: const Text('Détails de l\'événement')),
+        body: const Center(
+          child: Text('Aucun événement trouvé'),
+        ),
+      );
+    }
+
+    final event = _currentEvent!;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -100,17 +125,19 @@ class _EventDetailsViewState extends State<EventDetailsView> {
           icon: const Icon(Icons.arrow_back, size: 21),
           onPressed: () => Get.back(),
         ),
-        title: const Text('Cérémonie'),
+        title: const Text('Détails de l\'événement'),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined, size: 20),
             tooltip: 'Modifier',
             onPressed: () async {
-              final result =
-                  await Get.to(() => EditEventView(eventData: _event));
-              if (result != null && result is Map<String, dynamic>) {
+              final result = await Get.to(() => EditEventView(event: event));
+              if (result == true) {
+                //on rafraichit la vue locale
                 setState(() {
-                  _event.addAll(result);
+                  _currentEvent = _controller.events.firstWhereOrNull(
+                    (e) => e.id == event.id,
+                  );
                 });
               }
             },
@@ -128,10 +155,10 @@ class _EventDetailsViewState extends State<EventDetailsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionLabel('Cérémonie'),
+            const SectionLabel('Événement'),
             const SizedBox(height: 8),
             Text(
-              _event['title'] ?? '',
+              event.name,
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
@@ -144,39 +171,43 @@ class _EventDetailsViewState extends State<EventDetailsView> {
             Row(
               children: [
                 AppTag(
-                  _event['type'] ?? 'Cérémonie',
+                  event.type,
                   dotColor: AppColors.accent,
                 ),
                 const SizedBox(width: 6),
                 AppTag(
-                  _isPublished ? 'Publiée' : 'Brouillon',
-                  dotColor:
-                      _isPublished ? AppColors.success : AppColors.warning,
+                  'Publiée',
+                  dotColor: AppColors.success,
+                ),
+                const SizedBox(width: 6),
+                AppTag(
+                  event.isPaid
+                      ? '${_formatAmount(event.ticketPrice)} FCFA'
+                      : 'Entrée libre',
+                  dotColor: event.isPaid ? AppColors.info : AppColors.success,
                 ),
               ],
             ),
             const SizedBox(height: 22),
             _buildInfoRow(
               Icons.calendar_today_outlined,
-              '${_event['date']} · ${_event['time']}',
+              '${_formatDate(event.date)} · ${event.time}',
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
               Icons.location_on_outlined,
-              _event['location'] ?? 'Cotonou, Bénin',
+              event.location.isNotEmpty ? event.location : 'Lieu non défini',
             ),
             const SizedBox(height: 12),
             _buildInfoRow(
-              Icons.confirmation_number_outlined,
-              _event['isPaid'] == true
-                  ? 'Participation · ${_event['fee'] ?? "15 000 FCFA"}'
-                  : 'Entrée libre',
+              Icons.account_balance_wallet_outlined,
+              'Budget prévisionnel · ${_formatAmount(event.budget)} FCFA',
             ),
-            if ((_event['description'] ?? '').toString().isNotEmpty) ...[
+            if (event.description != null && event.description!.isNotEmpty) ...[
               const SizedBox(height: 12),
               _buildInfoRow(
                 Icons.notes_rounded,
-                _event['description'],
+                event.description!,
               ),
             ],
             const SizedBox(height: 28),
@@ -186,7 +217,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
 
             const SectionHeader(
               title: 'Pilotage',
-              subtitle: 'Les outils de la cérémonie',
+              subtitle: 'Les outils de l\'événement',
             ),
             const SizedBox(height: 12),
             Row(
@@ -196,17 +227,25 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                     title: 'Tableau de bord',
                     subtitle: 'Indicateurs clés',
                     icon: Icons.space_dashboard_outlined,
-                    onTap: () => Get.to(() => const DashboardScreen()),
+                    onTap: () {
+                      _controller.selectEvent(event);
+                      Get.toNamed(
+                        AppRoutes.dashboardOrganizer,
+                        arguments: event,
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: _buildModuleCard(
                     title: 'Tâches',
-                    subtitle:
-                        '${_event['tasksDone'] ?? 8}/${_event['tasksTotal'] ?? 14} faites',
+                    subtitle: 'Gérer les tâches',
                     icon: Icons.checklist_outlined,
-                    onTap: () => Get.to(() => const TaskListView()),
+                    onTap: () => Get.toNamed(
+                      AppRoutes.tasks,
+                      arguments: event.id ?? '',
+                    ),
                   ),
                 ),
               ],
@@ -217,20 +256,27 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                 Expanded(
                   child: _buildModuleCard(
                     title: 'Dépenses',
-                    subtitle:
-                        'Reste ${_event['budgetRestant'] ?? '700 000 FCFA'}',
+                    subtitle: 'Suivi budgétaire',
                     icon: Icons.account_balance_wallet_outlined,
-                    onTap: () => Get.to(() => const ExpenseListView()),
+                    onTap: () => Get.toNamed(
+                      AppRoutes.expenses,
+                      arguments: {
+                        'eventId': event.id ?? '',
+                        'budget': event.budget,
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: _buildModuleCard(
                     title: 'Participants',
-                    subtitle:
-                        '${_event['participantsCount'] ?? _event['participants'] ?? 64} inscrits',
+                    subtitle: 'Inscriptions',
                     icon: Icons.people_outline_rounded,
-                    onTap: () => Get.to(() => const ParticipantsListView()),
+                    onTap: () => Get.toNamed(
+                      AppRoutes.participants,
+                      arguments: event.id ?? '',
+                    ),
                   ),
                 ),
               ],
@@ -252,7 +298,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
             text,
             style: const TextStyle(
               fontSize: 13,
-              height: 1.5,
+              height: 1.45,
               color: AppColors.textSecondary,
             ),
           ),
@@ -263,10 +309,11 @@ class _EventDetailsViewState extends State<EventDetailsView> {
 
   Widget _buildPublicationCard() {
     return Container(
-      padding: const EdgeInsets.all(18),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
@@ -274,24 +321,24 @@ class _EventDetailsViewState extends State<EventDetailsView> {
         children: [
           Row(
             children: [
-              Expanded(
+              const AppIconBox(icon: Icons.link_rounded),
+              const SizedBox(width: 12),
+              const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Page publique',
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    SizedBox(height: 2),
                     Text(
-                      _isPublished
-                          ? 'Accessible aux participants'
-                          : 'Masquée aux invités',
-                      style: const TextStyle(
+                      'Pour les inscriptions et invitations',
+                      style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textTertiary,
                       ),
@@ -299,65 +346,12 @@ class _EventDetailsViewState extends State<EventDetailsView> {
                   ],
                 ),
               ),
-              Switch(
-                value: _isPublished,
-                onChanged: (val) {
-                  setState(() => _isPublished = val);
-                  Get.snackbar(
-                    'Page publique',
-                    val ? 'La page est en ligne.' : 'La page est masquée.',
-                  );
-                },
+              IconButton(
+                icon: const Icon(Icons.copy_rounded, size: 18),
+                color: AppColors.accent,
+                onPressed: _copyPublicLink,
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          const Divider(height: 1),
-          const SizedBox(height: 16),
-          const Text(
-            'Lien de partage',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: AppColors.textTertiary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.only(left: 13, right: 6, top: 4, bottom: 4),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceMuted,
-              borderRadius: BorderRadius.circular(11),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    _publicLink,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.copy_rounded, size: 16),
-                  color: AppColors.textSecondary,
-                  onPressed: _copyPublicLink,
-                  tooltip: 'Copier',
-                  visualDensity: VisualDensity.compact,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: () => Get.to(() => const PublicEventView()),
-              child: const Text('Voir comme un participant'),
-            ),
           ),
         ],
       ),
@@ -374,7 +368,7 @@ class _EventDetailsViewState extends State<EventDetailsView> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
@@ -383,18 +377,17 @@ class _EventDetailsViewState extends State<EventDetailsView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppIconBox(icon: icon, size: 36, iconSize: 17, radius: 11),
-            const SizedBox(height: 16),
+            AppIconBox(icon: icon),
+            const SizedBox(height: 12),
             Text(
               title,
               style: const TextStyle(
-                fontSize: 13.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                letterSpacing: -0.1,
                 color: AppColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: 2),
             Text(
               subtitle,
               style: const TextStyle(

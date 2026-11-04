@@ -74,12 +74,22 @@ class CreateTaskController extends GetxController {
   Future<void> saveTask() async {
     final title = titleController.text.trim();
     if (title.isEmpty) {
-      Get.snackbar('Champ requis', 'Veuillez renseigner le titre de la tâche.');
+      Get.snackbar(
+        'Champ requis',
+        'Veuillez renseigner le titre de la tâche.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
       return;
     }
 
     if (eventId.isEmpty) {
-      Get.snackbar('Erreur', 'Aucun événement relié à cette tâche.');
+      Get.snackbar(
+        'Erreur',
+        'Aucun événement relié à cette tâche.',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
       return;
     }
 
@@ -104,9 +114,19 @@ class CreateTaskController extends GetxController {
       }
 
       Get.back();
-      Get.snackbar('Succès', 'Tâche créée avec succès !');
+      Get.snackbar(
+        'Succès',
+        'Tâche créée avec succès !',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
     } catch (e) {
-      Get.snackbar('Erreur', 'Impossible de créer la tâche : $e');
+      Get.snackbar(
+        'Erreur',
+        'Impossible de créer la tâche : $e',
+        snackPosition: SnackPosition.TOP,
+        duration: const Duration(seconds: 5),
+      );
     } finally {
       isLoading.value = false;
     }

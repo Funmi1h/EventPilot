@@ -10,47 +10,47 @@ class AppColors {
   AppColors._();
 
   // ── Marque ──
-  // L'encre remplace l'ancien jaune doré : plus calme, plus humain.
   static const Color primary = ink;
   static const Color primaryDark = ink;
-  static const Color primarySoft = Color(0xFFF2EEE6);
+  static const Color primarySoft = Color(0xFFFBE1CF);
   static const Color onPrimary = Colors.white;
 
   // ── Accents ──
-  static const Color accent = Color(0xFF8C7351); // bronze
-  static const Color accentSoft = Color(0xFFF6F1E8);
+  static const Color accent = Color(0xFFED7900);
+  static const Color accentSoft = Color(0xFFFFF0E1);
   static const Color accentOrange = accent;
-  static const Color accentCoral = Color(0xFFA98763);
-  static const Color accentPurple = Color(0xFF6E6558);
+  static const Color accentCoral = Color(0xFFD8865D);
+  static const Color accentPurple = Color(0xFFB76FA4);
 
-  // Conservé pour compatibilité : un dégradé encre, jamais criard.
+  // Conservé pour compatibilité.
   static const LinearGradient welcomeGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF211F1B), Color(0xFF3A362F)],
+    colors: [Color(0xFF4B2A17), Color(0xFF74401C)],
   );
 
   // ── Fonds ──
-  static const Color ink = Color(0xFF1B1A17);
-  static const Color inkSoft = Color(0xFF2C2A25);
-  static const Color background = Color(0xFFFAF9F6);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceMuted = Color(0xFFF4F1EB);
-  static const Color border = Color(0xFFE8E3DA);
-  static const Color borderStrong = Color(0xFFD7D0C3);
+  static const Color frameBackground = Color(0xFFE9DADB);
+  static const Color ink = Color(0xFF5D3216);
+  static const Color inkSoft = Color(0xFF74401C);
+  static const Color background = Color(0xFFF8F1EF);
+  static const Color surface = Color(0xFFFFFBF9);
+  static const Color surfaceMuted = Color(0xFFF4E9E5);
+  static const Color border = Color(0xFFE9DCD7);
+  static const Color borderStrong = Color(0xFFD8C8C1);
 
   // ── Textes ──
-  static const Color textPrimary = Color(0xFF1B1A17);
-  static const Color textSecondary = Color(0xFF6B675E);
-  static const Color textTertiary = Color(0xFF9B958A);
+  static const Color textPrimary = Color(0xFF292423);
+  static const Color textSecondary = Color(0xFF716762);
+  static const Color textTertiary = Color(0xFF9D908A);
 
   // ── États ──
-  static const Color success = Color(0xFF3F6B4F);
-  static const Color successSoft = Color(0xFFEDF3EE);
-  static const Color warning = Color(0xFF946B33);
-  static const Color warningSoft = Color(0xFFF7F0E4);
-  static const Color error = Color(0xFF9B4A40);
-  static const Color errorSoft = Color(0xFFF8EEEC);
-  static const Color info = Color(0xFF3E5C76);
-  static const Color infoSoft = Color(0xFFEDF1F5);
+  static const Color success = Color(0xFF86A84D);
+  static const Color successSoft = Color(0xFFEEF4D9);
+  static const Color warning = Color(0xFFD77C19);
+  static const Color warningSoft = Color(0xFFFFF1D8);
+  static const Color error = Color(0xFFB84E45);
+  static const Color errorSoft = Color(0xFFFCEAE6);
+  static const Color info = Color(0xFF688B91);
+  static const Color infoSoft = Color(0xFFE8F1F1);
 }

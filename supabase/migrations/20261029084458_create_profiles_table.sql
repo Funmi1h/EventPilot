@@ -1,37 +1,39 @@
-create type public.role as enum ('admin', 'organizer'),
+-- Table des profils utilisateurs
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id uuid REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  full_name text NOT NULL DEFAULT 'Nouvel Utilisateur',
+  role text NOT NULL DEFAULT 'organizer',
+  updated_at timestamptz DEFAULT timezone('utc'::text, now()) NOT NULL
+);
 
-create table public.profiles (
-    id uuid references auth.users on delete cascade primary key,
-    fullname text  not null,
-    role public.role default 'organizer'::public.role not null,
-    updated_at timestampz default timezone('utc'::text, now()) not null
-)
+-- Activation RLS
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
---on active les RLS
-ALTER table public.profiles enable row level security;
+-- Politiques RLS
+DROP POLICY IF EXISTS "profils visibles par tous" ON public.profiles;
+CREATE POLICY "profils visibles par tous" ON public.profiles FOR SELECT USING (true);
 
---politique rls de base 
-create policy 'profils visbles  par tous ' on public .profiles for select using (true);
-create policy 'modifiable uniquement par le propriétaire du compte ' on public.profiles for update to authenticated using (auth.uid() = id);
+DROP POLICY IF EXISTS "modifiable uniquement par le propriétaire du compte" ON public.profiles;
+CREATE POLICY "modifiable uniquement par le propriétaire du compte" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id);
 
-
-
---la fonction qui va permettre de mettre les users crée dans la table profils
+-- Fonction trigger pour inserer automatiquement dans profiles a chaque inscription
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
   INSERT INTO public.profiles (id, full_name, role)
   VALUES (
     new.id,
-    coalesce(new.raw_user_meta_data->>'full_name', 'Nouvel Utilisateur'), -- Récupère le nom envoyé par Flutter
-    'organizer'::public.user_role                                         -- Rôle par défaut
-  );
+    coalesce(new.raw_user_meta_data->>'full_name', 'Nouvel Utilisateur'),
+    'organizer'
+  )
+  ON CONFLICT (id) DO UPDATE
+  SET full_name = EXCLUDED.full_name;
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
---le trigger pour créer une ligne dans la table profils a chaque inscription
-
-CREATE OR REPLACE TRIGGER on_auth_user_created
+-- Trigger sur auth.users
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();

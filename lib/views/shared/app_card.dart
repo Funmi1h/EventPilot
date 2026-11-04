@@ -3,7 +3,7 @@ import 'package:eventpilot/core/theme/app_colors.dart';
 
 /// Carte réutilisable pour afficher un événement.
 ///
-/// Utilisée dans la liste « Mes cérémonies » (écran 05) et l'aperçu accueil.
+/// Utilisée dans la liste « Mes événements » (écran 05) et l'aperçu accueil.
 /// Affiche : nom, date, lieu, badges de statut, barre de progression, budget.
 class AppCard extends StatelessWidget {
   final String title;
